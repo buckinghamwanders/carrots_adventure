@@ -1,0 +1,191 @@
+<html>
+  <head></head>
+  <body>
+    <div id="game"></div>
+    <script type="text/javascript" src="https://rawgithub.com/craftyjs/Crafty/release/dist/crafty-min.js"></script>
+    <script>
+	screenWidth = 500;
+	screenHeight = 350;
+
+  	Crafty.init(screenWidth,screenHeight, document.getElementById('game'));
+  
+  	Crafty.sprite(64, "images/carrots.png", {
+  		Carrots: [0,0]
+  	});
+  	Crafty.sprite(64, "images/target.png", {
+  		TargetImage: [0,0]
+  	});
+ 	
+		Crafty.c("Tile", {
+			init: function() {
+				this.jumpSize = 2;
+				this.jumpFunction = function(e) {
+					var jump = Math.floor(this.jumpSize * e.power);
+					return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *jump, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *jump};
+					//return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *2, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *2};
+				}
+				
+				this.contains = function(l) {
+					return (l.x >= this._x && l.x < this._x + this._w) && 
+								 (l.y >= this._y && l.y < this._h + this._y)
+				}
+				
+			}
+		});
+ 	
+  numTileWidth = 10;
+  numTileHeight = 7;
+  tileWidth = screenWidth/numTileWidth;
+  tileHeight = screenHeight/numTileHeight;
+  tileX = 0;
+  tileY = 3;
+  colorIdx = 0;
+	
+  var colors = ["FFFF00", "FF0000", "FFFF00", "00FF00", "FFFF00", "0000FF"];
+   for (x = 0; x < numTileWidth; x++)
+ 	{
+  		for (y = 0; y < numTileHeight; y++)
+		 {
+     		Crafty.e('2D, DOM, Color, Tile')
+             .attr({x: x*tileWidth, y: y*tileHeight, z:1,w: tileWidth, h: tileHeight})
+             .color(selectATileColor())
+             ;
+		}
+		
+  }
+  
+	Crafty.c("Rabbit", {
+			init: function() {
+				this.requires('2D, Keyboard,Controls, Color');
+				Crafty.log("Initializing Carrots");
+  			
+				var tiles = Crafty("Tile").get();
+				var locXY = {x:this._x,y:this._y};
+				for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
+				{
+					
+					if (tiles[tileIdx].contains(locXY))
+					{
+						this.tile = tiles[tileIdx];
+						break;
+					}									
+				}	
+				z = 10;
+				
+				this.power = 1.0;
+				
+	        	this.bind("KeyDown", function(e) {
+	  				//on keydown, set the move booleans
+					Crafty.log("Got key down: e");
+	  				if(e.keyCode === Crafty.keys.RIGHT_ARROW) {
+	  				this.rotation = this._rotation+90;
+	  				} else if(e.keyCode === Crafty.keys.LEFT_ARROW) {
+	  					this.rotation = this._rotation - 90;
+		
+	 				} else if(e.keyCode === Crafty.keys.SPACE) {
+	  					//this.x = this._x + Math.cos(Crafty.math.degToRad(this._rotation) )* tileWidth *2;
+						//this.y = this._y+ Math.sin(Crafty.math.degToRad(this._rotation) ) * tileWidth *2;
+						/*locXY = this.tile.jumpFunction(this);
+						var tiles = Crafty("Tile").get();
+						for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
+						{
+							if (tiles[tileIdx].contains(locXY))
+							{
+								this.x = locXY.x;
+								this.y = locXY.y;
+								this.tile = tiles[tileIdx];
+								break;
+							}									
+						}	*/
+						this.power += 0.1;
+						var d = new Date();
+						this.startPower = d.getTime();	
+							
+						Crafty.log("Setting power "+this.power)						
+	  				}
+	  			});
+			
+			
+			
+		    this.bind("KeyUp", function(e) {
+		  				//on keydown, set the move booleans
+					Crafty.log("Got key up: e");
+		  				if(e.keyCode === Crafty.keys.SPACE) {
+		  					//this.x = this._x + Math.cos(Crafty.math.degToRad(this._rotation) )* tileWidth *2;
+							//this.y = this._y+ Math.sin(Crafty.math.degToRad(this._rotation) ) * tileWidth *2;
+							var d = new Date();
+							var delta = d.getTime() - this.startPower;
+							var powerStep = 0.8 * delta / 5000.0;
+							this.power = powerStep;
+							Crafty.log("PowerStep: "+powerStep);
+							locXY = this.tile.jumpFunction(this);
+							this.power = 1.0;	
+							this.startPower = -1;
+							var tiles = Crafty("Tile").get();
+							for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
+							{
+								if (tiles[tileIdx].contains(locXY))
+								{
+									this.x = locXY.x;
+									this.y = locXY.y;
+									this.tile = tiles[tileIdx];
+									break;
+								}									
+							}								
+		  				}
+		  	}
+			);
+			this.bind("EnterFrame", function(eventData) {
+				if (this.startPower != -1)
+				{
+					var d = new Date();
+					
+					var delta = d.getTime() - this.startPower;
+					var powerStep = 0.8 * delta / 5000.0;
+					this.power =  powerStep;
+					Crafty.log("Frame PowerStep: "+this.power);
+					locXY = this.tile.jumpFunction(this);
+					this._target.x = locXY.x;
+					this._target.y = locXY.y;
+				}
+			  });
+			},
+			
+			target : function(t) {
+				this._target = t;
+				return this._target;
+			}
+		});
+			
+		Crafty.c("Target", {
+			init: function() {
+				this.requires('2D,  Color');
+				Crafty.log("Initializing Target");
+  			
+			}
+		});
+		//Make a sprite
+		var rabbitTarget = Crafty.e('2D, DOM, Color, Target, TargetImage')
+		.color("Pink")
+             .attr({x: (tileX+2)*tileWidth, y: tileY*tileHeight, z:10,w: tileWidth, h: tileHeight})
+         
+		 //Now need to add rabbitTarget to the rabit
+		 Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots')
+	    .origin("center")
+	    .attr({x: tileX*tileWidth, y: tileY*tileHeight, z:10, w: tileWidth, h: tileHeight})
+	    .color("Pink")
+		.target(rabbitTarget)
+	    ;
+		
+		
+  
+
+function selectATileColor()
+ {
+	 colorIdx++;
+	 colorIdx = colorIdx % colors.length;
+		return colors[colorIdx]
+  }
+	</script>
+  </body>
+</html>
