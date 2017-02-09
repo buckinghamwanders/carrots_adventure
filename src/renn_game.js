@@ -34,8 +34,51 @@
 				
 				scoreLabel.text('score: ');
 				
-			  var scoreText = Crafty.e('2D, DOM, Text')
-			    .attr({
+				Crafty.c('MoveCoordinator', {
+					activeMoves : {},
+				
+					registerMoveRule: function(mover,rule) {
+						var id = this.calculateIdString(mover)
+						if (! this.activeMoves.hasOwnProperty (id))
+					 	{
+							this.activeMoves[id] = [];
+						}
+						this.activeMoves[id].push(rule);
+					},
+					
+					unregisterMove: function(mover,rule) {
+						var id = this.calculateIdString(mover)
+						if ( this.activeMoves.hasOwnProperty (id))
+					 	{
+							var pos = this.activeMoves[id].indexOf(rule);
+							if (pos != -1)
+								this.activeMoves[id].splice(pos,1);
+						}
+						
+					},
+					
+					move:function(mover) {
+						var id = this.calculateIdString(mover)
+						if ( this.activeMoves.hasOwnProperty (id))
+					 	{
+							return this.activeMoves[id].reduce((accum,rule,idx,arr)=>this.addMoves(accum,rule.move(mover)),{x:0,y:0});
+							
+						}
+						return {x:0,y:0};
+					},
+					
+					addMoves:function(move1,move2) {
+						return {x:move1.x+move2.x,y:move2.y+move1.y};
+					},
+					
+					calculateIdString: function(mover) {return mover.getId();}
+					
+				});
+				
+				var moveCoordinator = Crafty.e('MoveCoordinator');
+				
+			  	var scoreText = Crafty.e('2D, DOM, Text')
+			   	 .attr({
 			      x: 150,
 			      y: 10
 			    }).bind("EnterFrame", function(eventData) {
@@ -91,7 +134,15 @@
 		  								 (l.y >= this._y && l.y < this._h + this._y)
 		  				}
 
-		  			}
+		  			},
+					
+					entityEnters: function (obj) {
+						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj)
+					},
+					
+					entityExits: function (obj) {
+						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj)
+					}
 		  		});
 
 		   
@@ -191,6 +242,7 @@
 		  							Crafty.log("PowerStep: "+powerStep);
 		  							if (this.tile !== undefined)
 										locXY = this.tile.jumpFunction(this);
+									var coordinator = Crafty('MoveCoordinator').get(0).move(this);
 		  							this._power = 1.0;
 		  							this._startPower = -1;
 		  							var tiles = Crafty("Tile").get();
@@ -200,7 +252,10 @@
 		  								{
 		  									this.x = locXY.x;
 		  									this.y = locXY.y;
+											this.tile.entityExits(this);
+											
 		  									this.tile = tiles[tileIdx];
+											this.tile.entityEnters(this);
 		  									break;
 		  								}
 		  							}
@@ -263,6 +318,8 @@
 
 		  			}
 		  		});
+				
+				
 		  		//Make a sprite
 		  		var rabbitTarget = Crafty.e('2D, DOM, Color, Target, TargetImage')
 		  		.color("Pink")
