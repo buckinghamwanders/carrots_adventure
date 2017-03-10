@@ -1,12 +1,12 @@
 		window.onload =(function() {
-			screenWidth = 500;
-			screenHeight = 400;
+			screenWidth = 1000;
+			screenHeight = 800;
 			textBuffer = 50;
 			
 		    POWER_RATE_PER_SECOND = 1;
 
-		    numTileWidth = 10;
-		    numTileHeight = 7;
+		    numTileWidth = 20;
+		    numTileHeight = 14;
 			worldStartX = 0;
 			worldStartY = textBuffer;
 			worldWidth = screenWidth;
@@ -16,6 +16,89 @@
 		    tileX = 0;
 		    tileY = 3;
 		    colorIdx = 0;
+			
+			var moveRuleLibrary = {
+				defaultRule: {
+					move:function(mover) {
+						var jump = 1;
+						return {x:mover._x + Math.cos(Crafty.math.degToRad(mover._rotation) )* tileWidth *jump, y:mover._y+ Math.sin(Crafty.math.degToRad(mover._rotation) ) * tileWidth *jump};
+					}
+				},
+				
+				power2Rule: {
+					move:function(mover) {
+						var jump = Math.floor(2 * mover._power);
+						return {x:mover._x + Math.cos(Crafty.math.degToRad(mover._rotation) )* tileWidth *jump, y:mover._y+ Math.sin(Crafty.math.degToRad(mover._rotation) ) * tileWidth *jump};		
+					}
+				}
+			};
+			
+			var tileActions = {
+				forceBounce : {
+					apply:function(mover) {
+						mover.trigger("CarrotBounce");
+					}
+				}
+			};
+			
+			var tileManager = {
+				update : function () {
+					Crafty("Tile").each(function (t) {
+						var e = Crafty(t);
+						if (!Crafty.viewport.onScreen(e))
+						{
+							Crafty.log("Is Off Screen: "+e.x+" , "+e.y);
+						}
+						
+					});
+				}
+			}
+			
+			var factory = {
+				reset : function(tiles)
+				{
+					for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
+					{
+						tiles[tileIdx].x += worldWidth;
+						//tiles[tileIdx].y = 0;
+						tiles[tileIdx].color("FF00FF")
+						Crafty.log("Reseting Tile to "+tiles[tileIdx].x+" , "+tiles[tileIdx].y);
+					}
+				}
+				
+			}
+			
+			var stageManager = {
+				reset : function () {
+					var offset = {
+						x:Crafty.viewport.x,
+						y:Crafty.viewport.y
+					}
+					
+					Crafty.log("Stage Offset x:"+offset.x+" y: "+offset.y);
+					Crafty.log("Stage Rect x:"+Crafty.viewport.bounds.min.x+" y: "+Crafty.viewport.bounds.min.y);
+					
+					var elements = Crafty("WorldElement").get();
+					var removers = [];
+					for (var elIdx = 0; elIdx < elements.length; elIdx++)
+					{
+						var el = elements[elIdx];
+						Crafty.log("Stage Offset Carrots :"+el.x+" y: "+el.y+" viewPort.x "+Crafty.viewport.x);
+						if (el._x  + Crafty.viewport._x < 0)
+						{
+							Crafty.log("  Remove Offset Carrots :"+el.x+" y: "+el.y);
+							
+							removers.push(el);
+						}
+						{
+							el.x = el.x +offset.x;
+							el.y = el.y + offset.y;
+							Crafty.log(" Update Offset Carrots :"+el.x+" y: "+el.y);
+						}
+					}
+					factory.reset(removers);
+				}
+			}
 			
 		    	Crafty.init(screenWidth,screenHeight);
 
@@ -33,10 +116,29 @@
 			    });
 				
 				scoreLabel.text('score: ');
+				Crafty.c('MoveRule', {
+					
+					_move: function(mover)
+					 {
+						 return {x:0,y:0};
+					},
+							
+		  			init: function() {
+					//	this._defineMoveRuleProperties();
+		  			}
+					
+				});
 				
+				Crafty.c('WorldElement', {
+		  			init: function() {
+					}
+				});
 				Crafty.c('MoveCoordinator', {
 					activeMoves : {},
 				
+		  			init: function() {
+					},
+					
 					registerMoveRule: function(mover,rule) {
 						var id = this.calculateIdString(mover)
 						if (! this.activeMoves.hasOwnProperty (id))
@@ -46,23 +148,21 @@
 						this.activeMoves[id].push(rule);
 					},
 					
-					unregisterMove: function(mover,rule) {
+					unregisterMoveRule: function(mover,rule) {
 						var id = this.calculateIdString(mover)
 						if ( this.activeMoves.hasOwnProperty (id))
 					 	{
 							var pos = this.activeMoves[id].indexOf(rule);
 							if (pos != -1)
 								this.activeMoves[id].splice(pos,1);
-						}
-						
+						}		
 					},
 					
 					move:function(mover) {
 						var id = this.calculateIdString(mover)
 						if ( this.activeMoves.hasOwnProperty (id))
 					 	{
-							return this.activeMoves[id].reduce((accum,rule,idx,arr)=>this.addMoves(accum,rule.move(mover)),{x:0,y:0});
-							
+							return this.activeMoves[id].reduce((accum,rule,idx,arr)=>this.addMoves(accum,rule.move(mover)),{x:0,y:0});		
 						}
 						return {x:0,y:0};
 					},
@@ -76,7 +176,7 @@
 				});
 				
 				var moveCoordinator = Crafty.e('MoveCoordinator');
-				
+				var moveRule1 = Crafty.e('MoveRule').attr( {move:function(mover){return {x:1,y:0}}});
 			  	var scoreText = Crafty.e('2D, DOM, Text')
 			   	 .attr({
 			      x: 150,
@@ -89,7 +189,7 @@
 					else if (aRabbit.score === undefined)
 						this.text('No score');
 					else
-						this.text (aRabbit.score.toString());
+						this.text (aRabbit._score.toString());
 				  });
 				
 			  var powerLabel = Crafty.e('2D, DOM, Text')
@@ -113,7 +213,7 @@
 					else if ( aRabbit.power === undefined)
 						this.text('no power '+rabbit);
 					else
-				    	this.text(aRabbit.power.toString());
+				    	this.text(aRabbit._power.toString());
 				  });
 				
 				scoreLabel.text('score: ');
@@ -121,10 +221,16 @@
 				powerLabel.text('power: ');
 
 		  		Crafty.c("Tile", {
+					enterRule: [],
+					exitRule: [],
+			    	_enterActions: [],
+					_exitActions: [],
+					
 		  			init: function() {
+						//this._defineTileProperties();
 		  				this.jumpSize = 2;
 		  				this.jumpFunction = function(e) {
-		  					var jump = Math.floor(this.jumpSize * e.power);
+		  					var jump = Math.floor(this.jumpSize * e._power);
 		  					return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *jump, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *jump};
 		  					//return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *2, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *2};
 		  				}
@@ -137,27 +243,68 @@
 		  			},
 					
 					entityEnters: function (obj) {
-						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj)
+						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj);
+						this.enterRule.forEach(function(r) {
+								Crafty('MoveCoordinator').get(0).registerMoveRule(obj,r);
+							}
+						);
+						this._enterActions.forEach(function(r) {
+							r.apply(obj);
+						});
 					},
 					
 					entityExits: function (obj) {
-						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj)
-					}
+						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj);
+						this.enterRule.forEach(function(r) {
+								Crafty('MoveCoordinator').get(0).unregisterMoveRule(obj,r);
+							}
+						);
+					},
+					
+					enterAction: function(obj)
+					{
+						if (obj != null && obj != undefined)
+							this._enterActions.push(obj);
+						return this;
+					},
+					
+					exitAction: function(obj)
+					{
+						if (obj != null && obj != undefined)
+							this._exitActions.push(obj);
+						return this;
+					}		
 		  		});
 
-		   
+				
+		   var moveRule = Crafty.e('MoveRule').attr({moveRule:function(e) {
+				var jump = Math.floor(2 * e._power);
+				return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *jump, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *jump};
+			
+		   }})
 
 		    var colors = ["FFFF00", "FF0000", "FFFF00", "00FF00", "FFFF00", "0000FF"];
-		     for (x = 0; x < numTileWidth; x++)
+		    for (x = 0; x < numTileWidth; x++)
 		   	{
-		    		for (y = 0; y < numTileHeight; y++)
+		    	 for (y = 0; y < numTileHeight; y++)
 		  		 {
-		       		Crafty.e('2D, DOM, Color, Tile')
-		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight})
-		               .color(selectATileColor())
-		               ;
+					 var color = selectATileColor();
+					 var enterAction = null;
+					 if (color == "FF0000")
+					 {
+						 enterAction = tileActions.forceBounce;
+    		       			 Crafty.e('2D, DOM, Color, Tile,WorldElement')
+    		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[moveRuleLibrary.defaultRule],_enterActions:[tileActions.forceBounce]})
+    		               .color(color)
+    		               ;
+					 }
+					 else {
+  		       			 Crafty.e('2D, DOM, Color, Tile,WorldElement')
+  		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[moveRuleLibrary.power2Rule]})
+  		               .color(color)
+  		               ;
+					 }	
 		  		}
-
 		    }
 
 		  	Crafty.c("Rabbit", {
@@ -166,36 +313,9 @@
 					
 					_score : 99,
 					tile : null,
-			    	_Rabbit_property_definitions : {
-			           power: {
-			               set: function (v) {
-			                   this._attr('_power', v);
-			               },
-			               get: function () {
-			                   return this._power;
-			               },
-			               configurable: true,
-			               enumerable: true
-			           },
-			           _power: {enumerable:false},
-			           score: {
-			               set: function (v) {
-			                   this._attr('_score', v);
-			               },
-			               get: function () {
-			                   return this._score;
-			               },
-			               configurable: true,
-			               enumerable: true
-			           },
-			           _score: {enumerable:false}
-				   },
+			    	
 				   
-					_defineRabbitProperties: function () {
-				        for (var prop in this._Rabbit_property_definitions){
-				            Object.defineProperty(this, prop, this._Rabbit_property_definitions[prop]);
-				        }
-				    },
+					
 					
 		  			init: function() {
 		  				this.requires('2D, Keyboard,Controls, Color');
@@ -207,7 +327,7 @@
 		  				
 		  				z = 10;
 
-						this._defineRabbitProperties();
+						//this._defineRabbitProperties();
 						
 		  				
 						
@@ -233,35 +353,52 @@
 		  		  				//on keydown, set the move booleans
 		  					Crafty.log("Got key up: e");
 		  		  			if(e.keyCode === Crafty.keys.SPACE) {
-		  		  					//this.x = this._x + Math.cos(Crafty.math.degToRad(this._rotation) )* tileWidth *2;
-		  							//this.y = this._y+ Math.sin(Crafty.math.degToRad(this._rotation) ) * tileWidth *2;
-		  							var d = new Date();
-		  							var delta = d.getTime() - this._startPower;
-		               			 	var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
-		      						this._power = 1.0+ powerStep;
-		  							Crafty.log("PowerStep: "+powerStep);
-		  							if (this.tile !== undefined)
-										locXY = this.tile.jumpFunction(this);
-									var coordinator = Crafty('MoveCoordinator').get(0).move(this);
-		  							this._power = 1.0;
-		  							this._startPower = -1;
-		  							var tiles = Crafty("Tile").get();
-		  							for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
-		  							{
-		  								if (tiles[tileIdx].contains(locXY))
-		  								{
-		  									this.x = locXY.x;
-		  									this.y = locXY.y;
-											this.tile.entityExits(this);
-											
-		  									this.tile = tiles[tileIdx];
-											this.tile.entityEnters(this);
-		  									break;
-		  								}
-		  							}
-		  		  				}
+	  							var d = new Date();
+  								var delta = d.getTime() - this._startPower;
+	               			 	var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
+	  							Crafty.log("PowerStep: "+powerStep);
+  							
+	      						this._power = 1.0+ powerStep;
+	  							this._startPower = -1;
+  							
+								this.trigger("CarrotBounce");							
 		  		  			}
+						}
 		  				);
+						this.bind("CarrotBounce", function(e) {
+  		  					//this.x = this._x + Math.cos(Crafty.math.degToRad(this._rotation) )* tileWidth *2;
+  							//this.y = this._y+ Math.sin(Crafty.math.degToRad(this._rotation) ) * tileWidth *2;
+  							//if (this.tile !== undefined)
+							//	locXY = this.tile.jumpFunction(this);
+							var coordinatorXY = Crafty('MoveCoordinator').get(0).move(this);
+  							this._power = 1.0;
+  							var tiles = Crafty("Tile").get();
+  							for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
+  							{
+  								if (tiles[tileIdx].contains(coordinatorXY))
+  								{
+  									//this.x = coordinatorXY.x;
+  									//this.y = coordinatorXY.y;
+									Crafty.log("Tweening - "+this);
+									
+									this.tween({x:coordinatorXY.x,y:coordinatorXY.y}, 1000);
+									//this.tile.entityExits(this);
+									
+									this.tile = tiles[tileIdx];
+									//this.tile.entityEnters(this);
+									this.one("TweenEnd",function(){
+	  									Crafty.log("Got tween end.");
+										tileManager.update();
+										stageManager.reset();
+										
+									});
+									//this._power = 1;
+  									
+  									break;
+  								}
+  							}
+						});
+						
 		  				this.bind("EnterFrame", function(eventData) {
 			  				var locXY = {x:this._x,y:this._y};
 			  				for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
@@ -269,8 +406,16 @@
 
 			  					if (tiles[tileIdx].contains(locXY))
 			  					{
-			  						this.tile = tiles[tileIdx];
-									Crafty.log("StartTile is "+this.tile);
+									var newTile = tiles[tileIdx];
+									if (newTile != this.tile)
+									{
+										if (this.tile != undefined)
+											this.tile.entityExits(this);
+										newTile.entityEnters(this);
+										this.tile = newTile;
+									}	
+			  						//this.tile = tiles[tileIdx];
+									//Crafty.log("StartTile is "+this.tile);
 			  						break;
 			  					}
 			  				}
@@ -281,22 +426,19 @@
 			  					var delta = d.getTime() - this._startPower;
 			  					var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
 			  					this._power =  1.0 + powerStep;
-			  					Crafty.log("Frame PowerStep: "+this.power);
+			  					Crafty.log("Frame PowerStep: "+this._power+" delta "+delta+" startPower "+this._startPower);
 				  				
 			  					if (this.tile === undefined)
 								{
 								
-								}
-							
+								}						
 								else
 								{
 								
 									locXY = this.tile.jumpFunction(this);
 									this._target.x = locXY.x;
 				  					this._target.y = locXY.y;
-			  					}
-								
-							
+			  					}								
 			  				}
 		  			  });
 		  			},
@@ -305,10 +447,6 @@
 		  				this._target = t;
 		  				return this._target;
 		  			},
-					
-		  			
-					
-				   
 		  		});
 
 		  		Crafty.c("Target", {
@@ -321,18 +459,26 @@
 				
 				
 		  		//Make a sprite
-		  		var rabbitTarget = Crafty.e('2D, DOM, Color, Target, TargetImage')
+		  		var rabbitTarget = Crafty.e('2D, DOM, Color, Target, TargetImage, WorldElement')
 		  		.color("Pink")
 		               .attr({x: worldStartX+ (tileX+2)*tileWidth, y: worldStartY+ tileY*tileHeight, z:10,w: tileWidth, h: tileHeight})
 
 		  		 //Now need to add rabbitTarget to the rabit
-		  		var rabbit =  Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots')
+		  		var rabbit =  Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots,Tween,WorldElement')
 		  	    .origin("center")
-		  	    .attr({x: worldStartX+ tileX*tileWidth, y: worldStartY+ tileY*tileHeight, z:10, w: tileWidth, h: tileHeight})
+		  	    .attr({x: worldStartX+ tileX*tileWidth, y: worldStartY+ tileY*tileHeight, z:10, w: tileWidth, h: tileHeight,score:0,power:0, startPower:-1})
 		  	    .color("Pink")
 		  		.target(rabbitTarget)
 		  	    ;
-
+				
+				Crafty.viewport.bounds = {min:{x:0, y:0}, max:{x:500, y:500}};
+				
+				Crafty.viewport.clampToEntities = false;
+				Crafty.one("CameraAnimationDone", function() {
+				    Crafty.viewport.follow(rabbit, 0, 0);
+				});
+				Crafty.viewport.centerOn(rabbit, 1000);
+				
 				Crafty.log("rabbit: "+rabbit.getId());
 				Crafty.log("Robbit score: "+rabbit.score);
 				
