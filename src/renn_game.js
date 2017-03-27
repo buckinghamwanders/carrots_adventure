@@ -148,7 +148,7 @@
 						var index = (Math.floor(changeFunctions.length * Math.random())) % changeFunctions.length;
 						var cFunc = tileMaker[changeFunctions[index]];
 						cFunc(tiles[tileIdx]);
-						Crafty.log("Reseting Tile to "+tiles[tileIdx].x+" , "+tiles[tileIdx].y);
+						//Crafty.log("Reseting Tile to "+tiles[tileIdx].x+" , "+tiles[tileIdx].y);
 					}
 				}
 				
@@ -161,15 +161,15 @@
 						y:Crafty.viewport.y
 					}
 					
-					Crafty.log("Stage Offset x:"+offset.x+" y: "+offset.y);
-					Crafty.log("Stage Rect x:"+Crafty.viewport.bounds.min.x+" y: "+Crafty.viewport.bounds.min.y);
+					//Crafty.log("Stage Offset x:"+offset.x+" y: "+offset.y);
+					//Crafty.log("Stage Rect x:"+Crafty.viewport.bounds.min.x+" y: "+Crafty.viewport.bounds.min.y);
 					
 					var elements = Crafty("WorldElement").get();
 					var removers = [];
 					for (var elIdx = 0; elIdx < elements.length; elIdx++)
 					{
 						var el = elements[elIdx];
-						Crafty.log("Stage Offset Carrots :"+el.x+" y: "+el.y+" viewPort.x "+Crafty.viewport.x);
+						//Crafty.log("Stage Offset Carrots :"+el.x+" y: "+el.y+" viewPort.x "+Crafty.viewport.x);
 						if (el._x  + Crafty.viewport._x < 0)
 						{
 							Crafty.log("  Remove Offset Carrots :"+el.x+" y: "+el.y);
@@ -178,8 +178,8 @@
 						}
 						{
 							el.x = el.x +offset.x;
-							el.y = el.y + offset.y;
-							Crafty.log(" Update Offset Carrots :"+el.x+" y: "+el.y);
+							//el.y = el.y + offset.y;
+							//Crafty.log(" Update Offset Carrots :"+el.x+" y: "+el.y);
 						}
 					}
 					factory.reset(removers,worldWidth);
@@ -341,7 +341,7 @@
 		  			},
 					
 					entityEnters: function (obj) {
-						//Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj);
+						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj+" enterAction "+this._enterActions.length+" color "+this._color);
 						this.enterRule.forEach(function(r) {
 								Crafty('MoveCoordinator').get(0).registerMoveRule(obj,r);
 							}
@@ -415,6 +415,7 @@
     		       			 Crafty.e('2D, DOM, Color, Tile,WorldElement')
     		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[moveRuleLibrary.defaultRule],_enterActions:[tileActions.forceBounce]})
     		               .color(color)
+						 	.origin("center")
     		               ;
 					 }
 					 else {
@@ -498,9 +499,11 @@
   								{
   									//this.x = coordinatorXY.x;
   									//this.y = coordinatorXY.y;
+									var newTile = tiles[tileIdx];
+									
 									Crafty.log("Tweening - "+this);
 									Crafty('MoveCoordinator').get(0).moveCompleted(this);
-									this.tween({x:coordinatorXY.x,y:coordinatorXY.y}, 1000);
+									this.tween({x:newTile.x,y:newTile.y}, 1000);
 									//this.tile.entityExits(this);
 									if (this.tile != undefined)
 										this.tile.entityExits(this);
@@ -511,6 +514,8 @@
 	  									Crafty.log("Got tween end.");
 										tileManager.update();
 										stageManager.reset();
+										var newTile = findTile({x:this._x,y:this._y});
+										this.tile = newTile;
 										this.tile.entityEnters(this);
 									
 									});
@@ -556,7 +561,9 @@
 								}						
 								else
 								{
-									locXY = this.tile.jumpFunction(this);
+									//locXY = this.tile.jumpFunction(this);
+									locXY = Crafty('MoveCoordinator').get(0).move(this);
+  							
 									this._target.x = locXY.x;
 				  					this._target.y = locXY.y;
 			  					}								
@@ -581,7 +588,7 @@
 						this.y = y;
 						var newTile = findTile({x:x,y:y});
 						if (newTile != undefined)
-							this.entityEnters(this);
+							newTile.entityEnters(this);
 					}
 		  		});
 
@@ -601,7 +608,8 @@
 							Crafty("Rabbit").each(function(r) {
 								var x = worldStartX+ tileX*tileWidth;
 								var y = worldStartY+ tileY*tileHeight;
-								this.forceLocation(x,y);
+								var t = findFirstTile(function(t) {return t._x});
+								this.forceLocation(t._x,t._y);
 							});
 							
 		  				});
@@ -651,15 +659,39 @@
 			{
   				var tiles = Crafty("Tile").get();
   				var ret;
+				var found = 0;
   				for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
   				{
 
   					if (tiles[tileIdx].contains(locXY))
   					{
 						ret = tiles[tileIdx];
-						break;
+						found = found +1;
+						//break;
   					}
   				}
+				Crafty.log("Found Tiles: "+found);
+				return ret;
+			}
+			
+			function findFirstTile(tFunc)
+			{
+  				var tiles = Crafty("Tile").get();
+  				var ret;
+				var found = 0;
+				var minVal;
+  				for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
+  				{
+
+  					if (minVal == undefined || tFunc(tiles[tileIdx]) < minVal)
+  					{
+						ret = tiles[tileIdx];
+						minVal = tFunc(tiles[tileIdx]);
+						found = found +1;
+						//break;
+  					}
+  				}
+				Crafty.log("Found First Tiles: "+found);
 				return ret;
 			}
 			
