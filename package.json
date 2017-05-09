@@ -1,0 +1,42 @@
+{
+  "name": "carrotsadventure",
+  "version": "1.0.0",
+  "description": "A game for Renn about bouncing from location to location",
+  "main": "src/renn_game.js",
+  "dependencies": {
+    "babel-core": "^6.24.1",
+    "babel-es6-polyfill": "^1.1.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-runtime": "^6.23.0",
+    "crafty": "^0.1.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-loader": "^7.0.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-es2017": "^6.24.1",
+    "http-server": "^0.10.0",
+    "webpack": "^2.5.0"
+  },
+  "scripts": {
+    "babel": "babel --presets es2015 src/renn_game.js -o build/renn_game.bundle.js",
+    "start": "node_modules/webpack-dev-server/bin/webpack-dev-server.js --open",
+	"build": "node_modules/webpack/bin/webpack.js --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/buckinghamwanders/carrots_adventure.git"
+  },
+  "keywords": [
+    "rabbit",
+    "renn"
+  ],
+  "author": "Buckingham Wanders",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/buckinghamwanders/carrots_adventure/issues"
+  },
+  "homepage": "https://github.com/buckinghamwanders/carrots_adventure#readme"
+}
