@@ -1,21 +1,26 @@
+	//import "babel-polyfill";
+	import MoveCountdownEtry from './MoveCountdownEtry.js';
+	import CountdownMover from './CountdownMover.js'
+		
 		window.onload =(function() {
-			screenWidth = 1000;
-			screenHeight = 800;
-			textBuffer = 50;
 			
-		    POWER_RATE_PER_SECOND = 1;
+			var screenWidth = 1000;
+			var screenHeight = 800;
+			var textBuffer = 50;
+			
+		    var POWER_RATE_PER_SECOND = 1;
 
-		    numTileWidth = 20;
-		    numTileHeight = 14;
-			worldStartX = 0;
-			worldStartY = textBuffer;
-			worldWidth = screenWidth;
-			worldHeight = screenHeight - textBuffer;
-		    tileWidth = worldWidth/numTileWidth;
-		    tileHeight = worldHeight/numTileHeight;
-		    tileX = 0;
-		    tileY = 3;
-		    colorIdx = 0;
+		    var numTileWidth = 20;
+		    var numTileHeight = 14;
+			var worldStartX = 0;
+			var worldStartY = textBuffer;
+			var worldWidth = screenWidth;
+			var worldHeight = screenHeight - textBuffer;
+		    var tileWidth = worldWidth/numTileWidth;
+		    var tileHeight = worldHeight/numTileHeight;
+		    var tileX = 0;
+		    var tileY = 3;
+		    var colorIdx = 0;
 			
 			var moveRuleLibrary = {
 				defaultRule: {
@@ -96,6 +101,16 @@
 						Crafty.log("Death");
 						Crafty.trigger("ResetWorld");
 					}
+				},
+				
+				quickTime : function(delay)
+				 {
+					 return {
+						 apply:function(mover) {
+							 Crafty.log("Trying to quickTime jump");
+							 Crafty.e("MoveCoordinator").startMoveClock(mover,delay);
+						 }
+					 }
 				}
 			};
 			
@@ -111,7 +126,7 @@
 				yellowTile: function(tile)
 				{
 					var color = "#00FFFF";
-	       			tile._enterActions =[];
+	       			tile._enterActions =[tileActions.quickTime(5000)];
 					tile.enterRule = [moveRuleLibrary.defaultRule];
 	                tile.CircleColor(color)
 	               ;
@@ -127,7 +142,7 @@
 				blueTile: function(tile)
 				{
 					var color = "#AAAAFF";
-	       			tile._enterActions = [];
+	       			tile._enterActions = [tileActions.quickTime(500)];
 					tile.enterRule = [moveRuleLibrary.defaultRule];
 	                tile.CircleColor(color)
 	               ;
@@ -135,7 +150,7 @@
 				redTile: function(tile)
 				{
 					var color = "#FF0000";
-	       			tile._enterActions = [];
+	       			tile._enterActions = [tileActions.quickTime(3000)];
 					tile.enterRule = [moveRuleLibrary.defaultRule];
 	                tile.CircleColor(color)
 	               ;
@@ -184,6 +199,83 @@
 						//Crafty.log("Reseting Tile to "+tiles[tileIdx].x+" , "+tiles[tileIdx].y);
 					}
 				}
+				
+			}
+			
+		/*	class MoveCountdownEtry {
+				constructor(cTime)
+				{
+					this.triggerTime = cTime;
+					this.paused = true;
+					this.countDown = this.triggerTime;
+				}
+				
+				tick(delta)
+				{
+					if (!this.paused)
+					{
+						this.countDown = this.countDown - delta;
+					}
+							
+				}
+				
+				set paused(isPaused)
+				{
+					this.paused = isPaused;
+				}
+				
+				get paused() {
+					return this.paused;
+				}
+				
+				
+				reset()
+				{
+					this.countDown = this.triggerTime;
+				}
+				
+				
+			} */
+			
+			var moveTrigger = {
+				moverTable: {},
+				
+				moveComplete : function(mover)
+				{
+					
+				},
+				
+				moveStarted : function(mover)
+				{
+					
+				},
+				
+				movePaused : function(mover)
+				{
+					
+				},
+				
+				tick : function()
+				{
+					
+				},
+				
+				addMover : function(mover)
+				{
+					
+				},
+				
+				removeMover : function(mover)
+				{
+					
+				},
+				
+				updateMoveTime : function(mover)
+				{},
+				
+				
+				calculateIdString: function(mover) {return mover.getId();}
+				
 				
 			}
 			
@@ -279,7 +371,8 @@
 				});
 				Crafty.c('MoveCoordinator', {
 					activeMoves : {},
-				
+					activeCountdowns : {},
+					
 		  			init: function() {
 					},
 					
@@ -306,16 +399,37 @@
 					},
 					
 					move:function(mover) {
+						
 						var id = this.calculateIdString(mover)
 						if ( this.activeMoves.hasOwnProperty (id))
 					 	{
-							centerXY = mover.centerPosition();
+							var centerXY = mover.centerPosition();
 							return this.activeMoves[id].reduce((accum,rule,idx,arr)=>this.addMoves(accum,rule.move(mover)),{x:centerXY.x,y:centerXY.y});		
 						}
 						return {x:0,y:0};
 					},
 					
+					startMoveClock:function(mover,delay) {
+						var id = this.calculateIdString(mover)
+						this.activeCountdowns[id] = new CountdownMover(mover);
+						mover.delay(this.activeCountdowns[id].doMove,delay,1);
+					},
+					
+					endMoveClock: function(mover, delay) {
+						var id = this.calculateIdString(mover)
+						if (this.activeCountdowns.hasOwnProperty(id))
+							mover.cancelDelay(this.activeCountdowns[id].doMove);
+					},
+					
+					/*executeClockMove: function(mover)
+					{
+						Crafty.log("Execute a move");
+						mover.trigger("CarrotBounce");
+					},*/
+					
+					
 					moveCompleted:function(mover) {
+						this.endMoveClock(mover);
 						var id = this.calculateIdString(mover)
 						if ( this.activeMoves.hasOwnProperty (id))
 					 	{
@@ -504,9 +618,9 @@
 		   }})
 
 		    var colors = ["#FFFF00", "#FF0000", "#FFFF00", "#00FF00", "#FFFF00", "#0000FF"];
-		    for (x = 0; x < numTileWidth; x++)
+		    for (var x = 0; x < numTileWidth; x++)
 		   	{
-		    	 for (y = 0; y < numTileHeight; y++)
+		    	 for (var y = 0; y < numTileHeight; y++)
 		  		 {
 					 var color = selectATileColor();
 					 var enterAction = null;
@@ -546,7 +660,7 @@
 						
 		  				var tiles = Crafty("Tile").get();
 		  				
-		  				z = 10;
+		  				var z = 10;
 
 						//this._defineRabbitProperties();
 						
@@ -664,6 +778,10 @@
 			  					this._power =  1.0 + powerStep;
 			  					//Crafty.log("Frame PowerStep: "+this._power+" delta "+delta+" startPower "+this._startPower);
 				  				
+			  								
+			  				}
+							if (!this.bouncing)
+							{
 			  					if (this.tile === undefined)
 								{
 								
@@ -672,12 +790,14 @@
 								{
 									//locXY = this.tile.jumpFunction(this);
 									locXY = Crafty('MoveCoordinator').get(0).move(this);
-  									posXY = this._target.positionFromCenterPos(locXY);
+  									var posXY = this._target.positionFromCenterPos(locXY);
 									this._target.x = posXY.x;
 				  					this._target.y = posXY.y;
-			  					}								
-			  				}
+			  					}					
+							}
+							
 		  			  });
+					  
 		  			},
 
 		  			target : function(t) {
@@ -733,7 +853,7 @@
 		               .attr({x: worldStartX+ (tileX+2)*tileWidth, y: worldStartY+ tileY*tileHeight, z:10,w: 50, h: 46})
 
 		  		 //Now need to add rabbitTarget to the rabit
-		  		var rabbit =  Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots,Tween,WorldElement')
+		  		var rabbit =  Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots,Tween,WorldElement,Delay')
 		  	    .origin("center")
 		  	    .attr({x: worldStartX+ tileX*tileWidth, y: worldStartY+ tileY*tileHeight, z:10, w: 50, h: 46,score:0,power:0, startPower:-1})
 		  	    //.color("Pink")
@@ -741,7 +861,7 @@
 		  	    ;
 				
 				var gameManager = Crafty.e('GameManager');
-				
+				Crafty.trigger("ResetWorld");
 				Crafty.viewport.bounds = {min:{x:0, y:0}, max:{x:500, y:500}};
 				
 				Crafty.viewport.clampToEntities = false;
