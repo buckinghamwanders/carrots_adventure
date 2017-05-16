@@ -120,7 +120,8 @@
 					var color = "#FFAAAA";
 	       			tile._enterActions = [tileActions.forceBounce];
 					tile.enterRule = [moveRuleLibrary.power2Rule];
-	                tile.CircleColor(color)
+	                tile.CircleColor(color);
+	                tile.setScore(1);
 	               ;
 				},
 				yellowTile: function(tile)
@@ -128,7 +129,8 @@
 					var color = "#00FFFF";
 	       			tile._enterActions =[tileActions.quickTime(5000)];
 					tile.enterRule = [moveRuleLibrary.defaultRule];
-	                tile.CircleColor(color)
+	                tile.CircleColor(color);
+	                tile.setScore(5);
 	               ;
 				},
 				greenTile: function(tile)
@@ -138,6 +140,7 @@
 					tile.enterRule = [moveRuleLibrary.slideRule];
 	                tile.CircleColor(color)
 	               ;
+	               tile.setScore(3);
 				},
 				blueTile: function(tile)
 				{
@@ -146,6 +149,7 @@
 					tile.enterRule = [moveRuleLibrary.defaultRule];
 	                tile.CircleColor(color)
 	               ;
+	               tile.setScore(10);
 				},
 				redTile: function(tile)
 				{
@@ -154,6 +158,7 @@
 					tile.enterRule = [moveRuleLibrary.defaultRule];
 	                tile.CircleColor(color)
 	               ;
+	               tile.setScore(8);
 				},
 				
 				deathTile: function(tile)
@@ -163,6 +168,7 @@
 					tile.enterRule = [moveRuleLibrary.defaultRule];
 	                tile.CircleColor(color)
 	               ;
+	               tile.setScore(-50);
 				}
 				
 				
@@ -525,7 +531,8 @@
 					exitRule: [],
 			    	_enterActions: [],
 					_exitActions: [],
-					
+					_score: 0,
+
 		  			init: function() {
 						//this._defineTileProperties();
 		  				this.jumpSize = 2;
@@ -559,11 +566,14 @@
 						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj+" enterAction "+this._enterActions.length+" color "+this._color);
 						this.enterRule.forEach(function(r) {
 								Crafty('MoveCoordinator').get(0).registerMoveRule(obj,r);
+								
 							}
 						);
+						obj.applyScore(this.getScore());
 						this._enterActions.forEach(function(r) {
 							r.apply(obj);
 						});
+
 					},
 					
 					entityExits: function (obj) {
@@ -586,7 +596,17 @@
 						if (obj != null && obj != undefined)
 							this._exitActions.push(obj);
 						return this;
-					}		
+					},
+
+					setScore: function(s)
+					{
+						this._score = s;
+					},	
+
+					getScore: function()
+					{
+						return this._score;
+					}
 		  		});
 
 				function findContainingTile(locXY)
@@ -648,7 +668,7 @@
 					_power : 0,
 					_startPower: -1,
 					
-					_score : 99,
+					_score : 0,
 					tile : null,
 					bouncing: false,
 					
@@ -818,6 +838,11 @@
 						var newTile = findTile({x:x,y:y});
 						if (newTile != undefined)
 							newTile.entityEnters(this);
+					},
+
+					applyScore: function(s)
+					{
+						this._score = this._score + s;
 					}
 		  		});
 
