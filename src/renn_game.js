@@ -1,6 +1,8 @@
 	//import "babel-polyfill";
 	import MoveCountdownEtry from './MoveCountdownEtry.js';
-	import CountdownMover from './CountdownMover.js'
+	import CountdownMover from './CountdownMover.js';
+	import MoveLibrary from './MoveLibrary.js';
+
 		
 		window.onload =(function() {
 			
@@ -21,8 +23,10 @@
 		    var tileX = 0;
 		    var tileY = 3;
 		    var colorIdx = 0;
-			
-			var moveRuleLibrary = {
+			const CENTER_TIME = 500;
+			var standardMoveLibrary = new MoveLibrary();
+			standardMoveLibrary = MoveLibrary.installDefaultRules(standardMoveLibrary);
+			/*var moveRuleLibrary = {
 				defaultRule: {
 					name: "Default",
 					
@@ -87,7 +91,7 @@
 					}
 					
 				},
-			};
+			};*/
 			
 			var tileActions = {
 				forceBounce : {
@@ -119,7 +123,7 @@
 				{
 					var color = "#FFAAAA";
 	       			tile._enterActions = [tileActions.forceBounce];
-					tile.enterRule = [moveRuleLibrary.power2Rule];
+					tile.enterRule = [standardMoveLibrary.rules["Power2"]];
 	                tile.CircleColor(color);
 	                tile.setScore(1);
 	               ;
@@ -128,7 +132,7 @@
 				{
 					var color = "#00FFFF";
 	       			tile._enterActions =[tileActions.quickTime(5000)];
-					tile.enterRule = [moveRuleLibrary.defaultRule];
+					tile.enterRule = [standardMoveLibrary.rules["Default"]];
 	                tile.CircleColor(color);
 	                tile.setScore(5);
 	               ;
@@ -137,7 +141,7 @@
 				{
 					var color = "#00FF00";
 	       			tile._enterActions = [tileActions.forceBounce];
-					tile.enterRule = [moveRuleLibrary.slideRule];
+					tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
 	                tile.CircleColor(color)
 	               ;
 	               tile.setScore(3);
@@ -146,7 +150,7 @@
 				{
 					var color = "#AAAAFF";
 	       			tile._enterActions = [tileActions.quickTime(500)];
-					tile.enterRule = [moveRuleLibrary.defaultRule];
+					tile.enterRule = [standardMoveLibrary.rules["Default"]];
 	                tile.CircleColor(color)
 	               ;
 	               tile.setScore(10);
@@ -155,7 +159,7 @@
 				{
 					var color = "#FF0000";
 	       			tile._enterActions = [tileActions.quickTime(3000)];
-					tile.enterRule = [moveRuleLibrary.defaultRule];
+					tile.enterRule = [standardMoveLibrary.rules["Default"]];
 	                tile.CircleColor(color)
 	               ;
 	               tile.setScore(8);
@@ -165,7 +169,7 @@
 				{
 					var color = "#FFFFFF";
 	       			tile._enterActions = [tileActions.death];
-					tile.enterRule = [moveRuleLibrary.defaultRule];
+					tile.enterRule = [standardMoveLibrary.rules["Default"]];
 	                tile.CircleColor(color)
 	               ;
 	               tile.setScore(-50);
@@ -208,40 +212,7 @@
 				
 			}
 			
-		/*	class MoveCountdownEtry {
-				constructor(cTime)
-				{
-					this.triggerTime = cTime;
-					this.paused = true;
-					this.countDown = this.triggerTime;
-				}
-				
-				tick(delta)
-				{
-					if (!this.paused)
-					{
-						this.countDown = this.countDown - delta;
-					}
-							
-				}
-				
-				set paused(isPaused)
-				{
-					this.paused = isPaused;
-				}
-				
-				get paused() {
-					return this.paused;
-				}
-				
-				
-				reset()
-				{
-					this.countDown = this.triggerTime;
-				}
-				
-				
-			} */
+		
 			
 			var moveTrigger = {
 				moverTable: {},
@@ -407,12 +378,12 @@
 					move:function(mover) {
 						
 						var id = this.calculateIdString(mover)
+						var centerXY = mover.centerPosition();
 						if ( this.activeMoves.hasOwnProperty (id))
 					 	{
-							var centerXY = mover.centerPosition();
 							return this.activeMoves[id].reduce((accum,rule,idx,arr)=>this.addMoves(accum,rule.move(mover)),{x:centerXY.x,y:centerXY.y});		
 						}
-						return {x:0,y:0};
+						return {x:centerXY.x,y:centerXY.y};
 					},
 					
 					startMoveClock:function(mover,delay) {
@@ -648,14 +619,14 @@
 					 {
 						 enterAction = tileActions.forceBounce;
     		       			 Crafty.e('2D, DOM, Color, Tile, WorldElement, Canvas, Circle').Circle(tileWidth,color)
-    		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[moveRuleLibrary.defaultRule],_enterActions:[tileActions.forceBounce]})
+    		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[],_enterActions:[]})
     		              // .color(color)
 						 	.origin("center")
     		               ;
 					 }
 					 else {
   		       			 Crafty.e('2D, DOM, Color, Tile, WorldElement, Canvas, Circle').Circle(tileWidth,color)
-  		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[moveRuleLibrary.power2Rule]})
+  		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[]})
   		               //.color(color)
   		               ;
 					 }	
@@ -731,6 +702,7 @@
 							var coordinatorXY = Crafty('MoveCoordinator').get(0).move(this);
   							this._power = 1.0;
   							var tiles = Crafty("Tile").get();
+  							var foundTile = false;
   							for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
   							{
   								if (tiles[tileIdx].contains(coordinatorXY))
@@ -738,7 +710,7 @@
   									//this.x = coordinatorXY.x;
   									//this.y = coordinatorXY.y;
 									var newTile = tiles[tileIdx];
-									
+									foundTile = true;
 									Crafty.log("Tweening - "+this);
 									Crafty('MoveCoordinator').get(0).moveCompleted(this);
 									var tileCenter = newTile.centerPosition();
@@ -759,13 +731,17 @@
 										var newTile = findTile({x:this._x,y:this._y});
 										this.tile = newTile;
 										this.tile.entityEnters(this);
-										
+										Crafty.viewport.centerOn(this, CENTER_TIME);
 									
 									});
 									//this._power = 1;
   									
   									break;
   								}
+  							}
+  							if (!foundTile)
+  							{
+  								this.bouncing = false;
   							}
 						});
 						
@@ -843,6 +819,11 @@
 					applyScore: function(s)
 					{
 						this._score = this._score + s;
+					},
+
+					tileMoveWidth : function ()
+					{
+						return tileWidth;
 					}
 		  		});
 
@@ -890,9 +871,9 @@
 				Crafty.viewport.bounds = {min:{x:0, y:0}, max:{x:500, y:500}};
 				
 				Crafty.viewport.clampToEntities = false;
-				Crafty.one("CameraAnimationDone", function() {
-				    Crafty.viewport.follow(rabbit, 0, 0);
-				});
+				//Crafty.one("CameraAnimationDone", function() {
+				 //   Crafty.viewport.follow(rabbit, 0, 0);
+				//});
 				Crafty.viewport.centerOn(rabbit, 1000);
 				
 				Crafty.log("rabbit: "+rabbit.getId());
