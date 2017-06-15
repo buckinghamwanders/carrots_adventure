@@ -106,6 +106,12 @@
 						Crafty.trigger("ResetWorld");
 					}
 				},
+				victory : {
+					apply:function(mover) {
+						Crafty.log("Victory");
+						Crafty.trigger("Victory");
+					}
+				},
 				
 				quickTime : function(delay)
 				 {
@@ -119,60 +125,116 @@
 			};
 			
 			var tileMaker = {
-				pinkTile: function(tile)
+				pinkTile:  {
+					build: function(tile)
+					{
+						var color = "#FFAAAA";
+		       			tile._enterActions = [tileActions.forceBounce];
+						tile.enterRule = [standardMoveLibrary.rules["Power2"]];
+		                tile.CircleColor(color);
+		                tile.setScore(1);
+		               ;
+					},
+					weight: function()
+					{
+						return 1.0;
+					}
+				}
+				,
+				yellowTile: 
 				{
-					var color = "#FFAAAA";
-	       			tile._enterActions = [tileActions.forceBounce];
-					tile.enterRule = [standardMoveLibrary.rules["Power2"]];
-	                tile.CircleColor(color);
-	                tile.setScore(1);
-	               ;
+					build:function(tile)
+					{
+						var color = "#AAOCCE";
+		       			tile._enterActions =[tileActions.quickTime(5000)];
+						tile.enterRule = [standardMoveLibrary.rules["Default"]];
+		                tile.CircleColor(color);
+		                tile.setScore(5);
+		               ;
+					},
+					weight: function()
+					{
+						return 1.0;
+					}
 				},
-				yellowTile: function(tile)
-				{
-					var color = "#00FFFF";
-	       			tile._enterActions =[tileActions.quickTime(5000)];
-					tile.enterRule = [standardMoveLibrary.rules["Default"]];
-	                tile.CircleColor(color);
-	                tile.setScore(5);
-	               ;
+				greenTile: 
+				{ 
+					build:function(tile)
+					{
+						var color = "#00FF00";
+		       			tile._enterActions = [tileActions.forceBounce];
+						tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
+		                tile.CircleColor(color)
+		               ;
+		               tile.setScore(3);
+					},
+					weight: function()
+					{
+						return 1.0;
+					}
 				},
-				greenTile: function(tile)
+
+				blueTile: 
 				{
-					var color = "#00FF00";
-	       			tile._enterActions = [tileActions.forceBounce];
-					tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
-	                tile.CircleColor(color)
-	               ;
-	               tile.setScore(3);
+					build:function(tile)
+					{
+						var color = "#AAAAFF";
+		       			tile._enterActions = [tileActions.quickTime(500)];
+						tile.enterRule = [standardMoveLibrary.rules["Default"]];
+		                tile.CircleColor(color)
+		               ;
+		               tile.setScore(10);
+					},
+					weight: function()
+					{
+						return 1.0;
+					}
 				},
-				blueTile: function(tile)
-				{
-					var color = "#AAAAFF";
-	       			tile._enterActions = [tileActions.quickTime(500)];
-					tile.enterRule = [standardMoveLibrary.rules["Default"]];
-	                tile.CircleColor(color)
-	               ;
-	               tile.setScore(10);
+				redTile: {
+					build: function(tile)
+					{
+						var color = "#FF0000";
+		       			tile._enterActions = [tileActions.quickTime(3000)];
+						tile.enterRule = [standardMoveLibrary.rules["Default"]];
+		                tile.CircleColor(color)
+		               ;
+		               tile.setScore(8);
+					},
+					weight: function()
+					{
+						return 1.0;
+					}
 				},
-				redTile: function(tile)
-				{
-					var color = "#FF0000";
-	       			tile._enterActions = [tileActions.quickTime(3000)];
-					tile.enterRule = [standardMoveLibrary.rules["Default"]];
-	                tile.CircleColor(color)
-	               ;
-	               tile.setScore(8);
+				deathTile:  {
+					build:function(tile)
+					{
+						var color = "#FFFFFF";
+		       			tile._enterActions = [tileActions.death];
+						tile.enterRule = [standardMoveLibrary.rules["Default"]];
+		                tile.CircleColor(color)
+		               ;
+		               tile.setScore(-50);
+					},
+					weight: function()
+					{
+						return 1.0;
+					}
 				},
-				
-				deathTile: function(tile)
-				{
-					var color = "#FFFFFF";
-	       			tile._enterActions = [tileActions.death];
-					tile.enterRule = [standardMoveLibrary.rules["Default"]];
-	                tile.CircleColor(color)
-	               ;
-	               tile.setScore(-50);
+				victoryTile: 
+				{ 
+					build:function(tile)
+					{
+						var color = "#e6f700";
+		       			tile._enterActions = [tileActions.victory];
+						tile.enterRule = [standardMoveLibrary.rules["Default"]];
+		                tile.CircleColor(color)
+		               ;
+		               tile.setScore(50);
+					},
+					weight: function()
+					{
+						return 0.01;
+					}
 				}
 				
 				
@@ -203,8 +265,19 @@
 						//tiles[tileIdx].y = 0;
 						//tiles[tileIdx].color("FF00FF")
 						var changeFunctions = Object.keys(tileMaker);
+						var totalWeight = Object.values(tileMaker).map(function(t) { return t.weight();}).reduce(function(w,t) {return w+t;},0);
+						var indexWeight = Math.random() * totalWeight;
 						var index = (Math.floor(changeFunctions.length * Math.random())) % changeFunctions.length;
-						var cFunc = tileMaker[changeFunctions[index]];
+						for (var i = 0; i < changeFunctions.length;i++)
+						{
+							indexWeight -= tileMaker[changeFunctions[i]].weight();
+							if (indexWeight <= 0)
+							{
+								index = i;
+								break;
+							}
+						}
+						var cFunc = tileMaker[changeFunctions[index]].build;
 						cFunc(tiles[tileIdx]);
 						//Crafty.log("Reseting Tile to "+tiles[tileIdx].x+" , "+tiles[tileIdx].y);
 					}
@@ -849,6 +922,16 @@
 							
 		  				});
 
+		  				this.bind("Victory", function() {
+		  					factory.reset(Crafty("Tile").get(),0);
+							Crafty("Rabbit").each(function(r) {
+								var x = worldStartX+ tileX*tileWidth;
+								var y = worldStartY+ tileY*tileHeight;
+								var t = findFirstTile(function(t) {return t._x});
+								this.forceLocation(t._x,t._y);
+							});
+							
+		  				});
 		  			}
 				});
 				
