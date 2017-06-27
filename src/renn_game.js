@@ -2,7 +2,8 @@
 	import MoveCountdownEtry from './MoveCountdownEtry.js';
 	import CountdownMover from './CountdownMover.js';
 	import MoveLibrary from './MoveLibrary.js';
-
+	import IdString from './IdString.js';
+	import TargetType from './TargetType.js';
 		
 		window.onload =(function() {
 			
@@ -576,7 +577,7 @@
 			    	_enterActions: [],
 					_exitActions: [],
 					_score: 0,
-
+					_idStr: new IdString(0),
 		  			init: function() {
 						//this._defineTileProperties();
 		  				this.jumpSize = 2;
@@ -650,6 +651,16 @@
 					getScore: function()
 					{
 						return this._score;
+					},
+
+					setIdStr: function(s)
+					{
+						this._idStr = s;
+					},
+
+					getIdStr: function(s)
+					{
+						return this._idStr;
 					}
 		  		});
 
@@ -900,13 +911,14 @@
 					}
 		  		});
 
-		  		Crafty.c("Target", {
+		  		/*Crafty.c("Target", {
 		  			init: function() {
 		  				this.requires('2D,  Color');
 		  				Crafty.log("Initializing Target");
 
 		  			}
-		  		});
+		  		});*/
+		  		TargetType.toCrafty();
 				
 				
 				Crafty.c("GameManager", {
