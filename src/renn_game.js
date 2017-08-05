@@ -4,7 +4,11 @@
 	import MoveLibrary from './MoveLibrary.js';
 	import IdString from './IdString.js';
 	import TargetType from './TargetType.js';
-		
+	import TileType from './TileType.js';
+	import TileFactory from './TileFactory.js';
+	import TileWorld from './TileWorld.js';
+	import LocationRegistry from './LocationRegistry.js';
+
 		window.onload =(function() {
 			
 			var screenWidth = 1000;
@@ -26,6 +30,9 @@
 		    var colorIdx = 0;
 			const CENTER_TIME = 500;
 			var standardMoveLibrary = new MoveLibrary();
+			var locRegistry = new LocationRegistry(Math.ceil(screenWidth/tileWidth),Math.ceil(screenHeight/tileHeight));
+			
+
 			standardMoveLibrary = MoveLibrary.installDefaultRules(standardMoveLibrary);
 			/*var moveRuleLibrary = {
 				defaultRule: {
@@ -269,6 +276,11 @@
 						var totalWeight = Object.values(tileMaker).map(function(t) { return t.weight();}).reduce(function(w,t) {return w+t;},0);
 						var indexWeight = Math.random() * totalWeight;
 						var index = (Math.floor(changeFunctions.length * Math.random())) % changeFunctions.length;
+						var tileLocation = {x:tiles[tileIdx].x+this.totalShift,y:tiles[tileIdx].y};
+						var gridLocation = screenXYToGrid(tileLocation);
+						var claimValue = tiles[tileIdx].getId();
+
+						//Debug this needs to be removed is test of code
 						for (var i = 0; i < changeFunctions.length;i++)
 						{
 							indexWeight -= tileMaker[changeFunctions[i]].weight();
@@ -278,9 +290,25 @@
 								break;
 							}
 						}
+						if (locRegistry.IsClaimed(gridLocation))
+						{
+							Crafty.log("Why is the tile claimed before reset.");
+							var locIdx = locRegistry.FindLocation(gridLocation);
+							Crafty.log(" Location index is: "+locIdx);
+							var claimer = locRegistry.ClaimData(gridLocation);
+							Crafty.log(" Claimer is: "+claimer);
+							var claimerXY = {x:Crafty(claimer).x,y:Crafty(claimer).y};
+							Crafty.log(" Claimer Loc is: "+claimerXY);
+							
+							
+						}	 
+						locRegistry.Claim(gridLocation,claimValue);
+						if (!locRegistry.IsClaimed(gridLocation))
+							 Crafty.log("Why is the tile not claimed after reset.");
+						
 						var cFunc = tileMaker[changeFunctions[index]].build;
 						cFunc(tiles[tileIdx]);
-						//Crafty.log("Reseting Tile to "+tiles[tileIdx].x+" , "+tiles[tileIdx].y);
+						Crafty.log("Reseting Tile to "+tileIdx+" Loc: "+tiles[tileIdx].x+" , "+tiles[tileIdx].y+" using idex "+index);
 					}
 				}
 				
@@ -331,34 +359,62 @@
 			}
 			
 			var stageManager = {
+				totalShift : 0,
+
 				reset : function () {
 					var offset = {
 						x:Crafty.viewport.x,
 						y:Crafty.viewport.y
 					}
 					
-					//Crafty.log("Stage Offset x:"+offset.x+" y: "+offset.y);
+					Crafty.log("Stage Offset x:"+offset.x+" y: "+offset.y+" offset in tile units "+(offset.x/tileWidth)+" , "+(offset.y/tileHeight));
 					//Crafty.log("Stage Rect x:"+Crafty.viewport.bounds.min.x+" y: "+Crafty.viewport.bounds.min.y);
 					
 					var elements = Crafty("WorldElement").get();
 					var removers = [];
+					var minX = this.findMinX();
+					var shiftX = this.calculateShift();
+
 					for (var elIdx = 0; elIdx < elements.length; elIdx++)
 					{
 						var el = elements[elIdx];
 						//Crafty.log("Stage Offset Carrots :"+el.x+" y: "+el.y+" viewPort.x "+Crafty.viewport.x);
-						if (el._x  + Crafty.viewport._x < 0)
+						if (el._x  < minX)
 						{
 							Crafty.log("  Remove Offset Carrots :"+el.x+" y: "+el.y);
 							
 							removers.push(el);
+							locRegistry.Release(screenXYToGrid({x:el._x+this.totalShift,y:el._y}));
 						}
 						{
-							el.x = el.x +offset.x;
+							el.x = el.x +shiftX;
 							//el.y = el.y + offset.y;
-							//Crafty.log(" Update Offset Carrots :"+el.x+" y: "+el.y);
+							Crafty.log(" Update Offset Carrots :"+el.x+" y: "+el.y);
 						}
+
 					}
+					var currentGridShift = screenXYToGrid({x:this.totalShift,y:0});
+					this.totalShift += -shiftX;
+					var newGridShift = screenXYToGrid({x:this.totalShift,y:0});
+					//locRegistry.Shift({x:newGridShift.x-currentGridShift.x, y:newGridShift.y-currentGridShift.y});
 					factory.reset(removers,worldWidth);
+				},
+
+				findMinX: function() {
+					return 0;
+				},
+
+				calculateShift : function() {
+					var aRabbit = Crafty("Rabbit").get(0);
+
+					Crafty.log("Rabbit Location: x "+aRabbit.x);
+					
+					var ret = 0;
+				    if (aRabbit.x > 300)
+				    {
+				    	ret = -50;
+				    }
+				    return ret;
 				}
 			}
 			
@@ -420,6 +476,7 @@
 					
 					
 				});
+
 				Crafty.c('MoveCoordinator', {
 					activeMoves : {},
 					activeCountdowns : {},
@@ -571,7 +628,7 @@
 				    }
 				});
 
-		  		Crafty.c("Tile", {
+		  	/*	Crafty.c("Tile", {
 					enterRule: [],
 					exitRule: [],
 			    	_enterActions: [],
@@ -662,7 +719,9 @@
 					{
 						return this._idStr;
 					}
-		  		});
+		  		}); */
+
+		  		TileType.toCrafty();
 
 				function findContainingTile(locXY)
 				{
@@ -924,6 +983,13 @@
 				Crafty.c("GameManager", {
 		  			init: function() {
 		  				this.bind("ResetWorld", function() {
+		  					var elements = Crafty("Tile").get();
+							for (var elIdx = 0; elIdx < elements.length; elIdx++)
+							{
+								var el = elements[elIdx];
+						
+								locRegistry.Release(screenXYToGrid({x:el._x,y:el._y}));
+							}
 		  					factory.reset(Crafty("Tile").get(),0);
 							Crafty("Rabbit").each(function(r) {
 								var x = worldStartX+ tileX*tileWidth;
@@ -935,6 +1001,13 @@
 		  				});
 
 		  				this.bind("Victory", function() {
+		  					var elements = Crafty("Tile").get();
+							for (var elIdx = 0; elIdx < elements.length; elIdx++)
+							{
+								var el = elements[elIdx];
+						
+								locRegistry.Release(screenXYToGrid({x:el._x,y:el._y}));
+							}
 		  					factory.reset(Crafty("Tile").get(),0);
 							Crafty("Rabbit").each(function(r) {
 								var x = worldStartX+ tileX*tileWidth;
@@ -960,6 +1033,14 @@
 		  	    //.color("Pink")
 		  		.target(rabbitTarget)
 		  	    ;
+
+		  	    /*for (var xLoc = 0; xLoc < Math.ceil(screenWidth/tileWidth); xLoc += 2)
+				{
+					for (var yLoc = 0; yLoc < Math.ceil(screenHeight/tileHeight); yLoc += 1)
+					{
+						locRegistry.Claim({x:xLoc,y:yLoc},11);
+					}
+				}*/
 				
 				var gameManager = Crafty.e('GameManager');
 				Crafty.trigger("ResetWorld");
@@ -974,9 +1055,14 @@
 				Crafty.log("rabbit: "+rabbit.getId());
 				Crafty.log("Robbit score: "+rabbit.score);
 				
+				
 			
 
 
+			function screenXYToGrid(loc)
+			{
+				return {x:Math.floor(loc.x/tileWidth),y:Math.floor(loc.y/tileHeight)};
+			}
 
 		  function selectATileColor()
 		   {

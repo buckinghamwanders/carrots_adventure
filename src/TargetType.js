@@ -1,4 +1,4 @@
-export default class TileType {
+export default class TargetType {
 	static toCrafty()
 	{
 		Crafty.c("Target", {
