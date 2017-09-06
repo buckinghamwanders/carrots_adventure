@@ -8,6 +8,16 @@
 	import TileFactory from './TileFactory.js';
 	import TileWorld from './TileWorld.js';
 	import LocationRegistry from './LocationRegistry.js';
+	import RandomTileSelector from './RandomTileSelector.js';
+	import TileLibrary from './TileLibrary.js';
+	import SimpleTileFactory from './SimpleTileFactory.js';
+	import DefaultTileLibrary from './DefaultTileLibrary.js';
+	import TileArranger from './TileArranger.js';
+	import PatternTileSelector from './PatternTileSelector.js';
+	import RotationSelector from './RotationSelector.js';
+	import StageManager from './StageManager.js';
+	import DefaultPatternLibrary from './DefaultPatternLibrary.js';
+
 
 		window.onload =(function() {
 			
@@ -25,81 +35,19 @@
 			var worldHeight = screenHeight - textBuffer;
 		    var tileWidth = worldWidth/numTileWidth;
 		    var tileHeight = worldHeight/numTileHeight;
+
+		   
 		    var tileX = 0;
 		    var tileY = 3;
 		    var colorIdx = 0;
 			const CENTER_TIME = 500;
 			var standardMoveLibrary = new MoveLibrary();
-			var locRegistry = new LocationRegistry(numTileWidth,numTileHeight);
+			var tileWorld = new TileWorld(tileWidth,tileHeight,numTileWidth,numTileHeight);
+
 			var rabbitId = -1;
 
 			standardMoveLibrary = MoveLibrary.installDefaultRules(standardMoveLibrary);
-			/*var moveRuleLibrary = {
-				defaultRule: {
-					name: "Default",
-					
-					move:function(mover) {
-						var jump = 1;
-						return {x: Math.cos(Crafty.math.degToRad(mover._rotation) )* tileWidth *jump, y: Math.sin(Crafty.math.degToRad(mover._rotation) ) * tileWidth *jump};
-					},
-					
-					//return false if done
-					//return true to return
-					processMoved:function(mover) {
-						var ret = false;
-						return ret;
-					}
-				},
-				
-				power2Rule: {
-					name:"Power2",
-					
-					move:function(mover) {
-						var jump = Math.floor(2 * mover._power);
-						return {x: Math.cos(Crafty.math.degToRad(mover._rotation) )* tileWidth *jump, y: Math.sin(Crafty.math.degToRad(mover._rotation) ) * tileWidth *jump};		
-					},
-					
-					//return false if done
-					//return true to return
-					processMoved:function(mover) {
-						var ret = false;
-						return ret;
-					}
-				},
-				
-				slideRule: {
-					name: "Slide",
-					slideCounter: {},
-					slideSize: 5,
-					move:function(mover) {
-						var jump = 1;
-						return {x: Math.cos(Crafty.math.degToRad(mover._rotation) )* tileWidth *jump, y: Math.sin(Crafty.math.degToRad(mover._rotation) ) * tileWidth *jump};
-					},
-					
-					//return false if done
-					//return true to return
-					processMoved:function(mover) {
-						var id = this.calculateIdString(mover)
-						this.updateSlideCount(id);
-						var slideLeft = this.slideLength(id)
-						
-						var ret = slideLeft > 0;
-						return ret;
-					},
-					calculateIdString: function(mover) {return mover.getId();},
-					updateSlideCount: function(id) {
-						if ((! this.slideCounter.hasOwnProperty (id)) || (this.slideCounter[id] <= 0))
-					 	{
-							this.slideCounter[id] = this.slideSize;
-						}
-						this.slideCounter[id] = this.slideCounter[id]--;
-					},
-					slideLength: function(id) {
-						return this.slideCounter[id];
-					}
-					
-				},
-			};*/
+
 			
 			var tileActions = {
 				forceBounce : {
@@ -131,128 +79,8 @@
 					 }
 				}
 			};
-			
-			var tileMaker = {
-				pinkTile:  {
-					build: function(tile)
-					{
-						var color = "#FFAAAA";
-		       			tile._enterActions = [tileActions.forceBounce];
-						tile.enterRule = [standardMoveLibrary.rules["Power2"]];
-						 if ( typeof(tile.CircleColor) != typeof(Function))
-						 {
-						 	Crafty.log("Missing CircleColor");
-						 }
-		                tile.CircleColor(color);
-		                tile.setScore(1);
-		               ;
-					},
-					weight: function()
-					{
-						return 1.0;
-					}
-				}
-				,
-				yellowTile: 
-				{
-					build:function(tile)
-					{
-						var color = "#AAOCCE";
-		       			tile._enterActions =[tileActions.quickTime(5000)];
-						tile.enterRule = [standardMoveLibrary.rules["Default"]];
-		                tile.CircleColor(color);
-		                tile.setScore(5);
-		               ;
-					},
-					weight: function()
-					{
-						return 1.0;
-					}
-				},
-				greenTile: 
-				{ 
-					build:function(tile)
-					{
-						var color = "#00FF00";
-		       			tile._enterActions = [tileActions.forceBounce];
-						tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
-		                tile.CircleColor(color)
-		               ;
-		               tile.setScore(3);
-					},
-					weight: function()
-					{
-						return 1.0;
-					}
-				},
 
-				blueTile: 
-				{
-					build:function(tile)
-					{
-						var color = "#AAAAFF";
-		       			tile._enterActions = [tileActions.quickTime(500)];
-						tile.enterRule = [standardMoveLibrary.rules["Default"]];
-		                tile.CircleColor(color)
-		               ;
-		               tile.setScore(10);
-					},
-					weight: function()
-					{
-						return 1.0;
-					}
-				},
-				redTile: {
-					build: function(tile)
-					{
-						var color = "#FF0000";
-		       			tile._enterActions = [tileActions.quickTime(3000)];
-						tile.enterRule = [standardMoveLibrary.rules["Default"]];
-		                tile.CircleColor(color)
-		               ;
-		               tile.setScore(8);
-					},
-					weight: function()
-					{
-						return 1.0;
-					}
-				},
-				deathTile:  {
-					build:function(tile)
-					{
-						var color = "#FFFFFF";
-		       			tile._enterActions = [tileActions.death];
-						tile.enterRule = [standardMoveLibrary.rules["Default"]];
-		                tile.CircleColor(color)
-		               ;
-		               tile.setScore(-50);
-					},
-					weight: function()
-					{
-						return 1.0;
-					}
-				},
-				victoryTile: 
-				{ 
-					build:function(tile)
-					{
-						var color = "#e6f700";
-		       			tile._enterActions = [tileActions.victory];
-						tile.enterRule = [standardMoveLibrary.rules["Default"]];
-		                tile.CircleColor(color)
-		               ;
-		               tile.setScore(50);
-					},
-					weight: function()
-					{
-						return 0.01;
-					}
-				}
-				
-				
-			};
-			
-			
+
 			
 			var tileManager = {
 				update : function () {
@@ -289,73 +117,8 @@
 				}
 			}
 
-			var factory = {
-				index: 0,
-				determineBestFreeLocation : function (globalOffset)
-				{
-					var localTileLoc = locRegistry.findBestOpen(highAndRightTest(globalOffset));
-					var globalTileLoc = locRegistry.calculateAGlobalSpot(localTileLoc,Math.floor(globalOffset/tileWidth));
-					var gridLoc = { x: globalTileLoc.x * tileWidth, y: globalTileLoc.y * tileHeight}; //this is in wrapped space.
-					return gridLoc;
-				},
+			var newFactory = new SimpleTileFactory(new TileArranger(DefaultTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(DefaultPatternLibrary.build()))), highAndRightTest,tileWorld);
 
-				reset : function(tiles,offset,globalOffset)
-				{
-					//for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
-					while (tiles.length > 0)
-					{
-						//tiles[tileIdx].x += offset;//worldWidth;
-						//tiles[tileIdx].y = 0;
-						//tiles[tileIdx].color("FF00FF")
-						var tile = tiles.pop();
-						var newLoc = this.determineBestFreeLocation(globalOffset);
-						//newloc is in global space, need to apply the shift over
-						tile.x = newLoc.x - globalOffset;
-						tile.y = newLoc.y;
-
-						var changeFunctions = Object.keys(tileMaker);
-						var totalWeight = Object.values(tileMaker).map(function(t) { return t.weight();}).reduce(function(w,t) {return w+t;},0);
-						var indexWeight = Math.random() * totalWeight;
-						var index = (Math.floor(changeFunctions.length * Math.random())) % changeFunctions.length;
-						var tileLocation = {x:tile.x+globalOffset,y:tile.y};
-						var gridLocation = screenXYToGrid(tileLocation);
-						var claimValue = tile.getId();
-
-						//Debug this needs to be removed is test of code
-						for (var i = 0; i < changeFunctions.length;i++)
-						{
-							indexWeight -= tileMaker[changeFunctions[i]].weight();
-							if (indexWeight <= 0)
-							{
-								index = i;
-								break;
-							}
-						}
-						if (locRegistry.IsClaimed(gridLocation))
-						{
-							Crafty.log("Why is the tile claimed before reset.");
-							var locIdx = locRegistry.FindLocation(gridLocation);
-							Crafty.log(" Location index is: "+locIdx);
-							var claimer = locRegistry.ClaimData(gridLocation);
-							Crafty.log(" Claimer is: "+claimer);
-							var claimerXY = {x:Crafty(claimer).x,y:Crafty(claimer).y};
-							Crafty.log(" Claimer Loc is: "+claimerXY);
-							
-							
-						}	 
-						locRegistry.Claim(gridLocation,claimValue);
-						if (!locRegistry.IsClaimed(gridLocation))
-							 Crafty.log("Why is the tile not claimed after reset.");
-						index = (Math.floor(tile.x/tileWidth) * numTileHeight + Math.floor(tile.y/tileHeight)) % 5;
-						var cFunc = tileMaker[changeFunctions[index]].build;
-						cFunc(tile);
-						//Crafty.log("Reseting Tile to "+" Loc: "+tile.x+" , "+tile.y+" using idex "+index);
-					}
-				}
-				
-			}
-			
-		
 			
 			var moveTrigger = {
 				moverTable: {},
@@ -399,7 +162,8 @@
 				
 			}
 			
-			var stageManager = {
+			var stageManagerNew = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
+			/*var stageManager = {
 				totalShift : 0,
 				minFactorySupply : numTileHeight * 4,
 				freeQueue : [],
@@ -434,7 +198,7 @@
 							
 							
 								//removers.push(el);
-								locRegistry.Release(screenXYToGrid({x:el._x+this.totalShift,y:el._y}));
+								tileWorld.Registry().Release(tileWorld.screenXYToGrid({x:el._x+this.totalShift,y:el._y}));
 								this.freeQueue.push(el);
 							}
 						}
@@ -445,13 +209,12 @@
 						}
 
 					}
-					var currentGridShift = screenXYToGrid({x:this.totalShift,y:0});
+					var currentGridShift = tileWorld.screenXYToGrid({x:this.totalShift,y:0});
 					this.totalShift += -shiftX;
-					var newGridShift = screenXYToGrid({x:this.totalShift,y:0});
-					//locRegistry.Shift({x:newGridShift.x-currentGridShift.x, y:newGridShift.y-currentGridShift.y});
+					var newGridShift = tileWorld.screenXYToGrid({x:this.totalShift,y:0});
 					if (this.freeQueue.length >  this.minFactorySupply)
 					{
-						factory.reset(this.freeQueue,worldWidth,this.totalShift);
+						newFactory.reset(this.freeQueue,worldWidth,this.totalShift);
 					}
 				},
 
@@ -473,7 +236,7 @@
 				    }
 				    return ret;
 				}
-			}
+			}*/
 			
 		    	Crafty.init(screenWidth,screenHeight);
 
@@ -685,98 +448,6 @@
 				    }
 				});
 
-		  	/*	Crafty.c("Tile", {
-					enterRule: [],
-					exitRule: [],
-			    	_enterActions: [],
-					_exitActions: [],
-					_score: 0,
-					_idStr: new IdString(0),
-		  			init: function() {
-						//this._defineTileProperties();
-		  				this.jumpSize = 2;
-		  				this.jumpFunction = function(e) {
-		  					var jump = Math.floor(this.jumpSize * e._power);
-		  					return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *jump, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *jump};
-		  					//return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *2, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *2};
-		  				}
-
-		  				this.contains = function(l) {
-		  					return (l.x >= this._x && l.x < this._x + this._w) &&
-		  								 (l.y >= this._y && l.y < this._h + this._y)
-		  				}
-					//	this.bind("Draw", this.sdraw);  //Does it need to keep rendering with expensive call?
-
-		  			},
-					
-					   
-					    sdraw: function(e) {
-					        var ctx=Crafty.canvasLayer.context; 
-					        ctx.lineWidth = 8;
-					        ctx.strokeStyle = "0x00FF00"
-							ctx.beginPath();
-							ctx.arc(e.pos._x,e.pos._y,e.width,0,2*Math.PI)
-					        //ctx.moveTo(e.pos._x, e.pos._y+20);
-					        //ctx.lineTo(e.pos._x+50, e.pos._y+20);
-					        ctx.stroke();
-					     },
-					
-					entityEnters: function (obj) {
-						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj+" enterAction "+this._enterActions.length+" color "+this._color);
-						this.enterRule.forEach(function(r) {
-								Crafty('MoveCoordinator').get(0).registerMoveRule(obj,r);
-								
-							}
-						);
-						obj.applyScore(this.getScore());
-						this._enterActions.forEach(function(r) {
-							r.apply(obj);
-						});
-
-					},
-					
-					entityExits: function (obj) {
-						//Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj);
-						this.enterRule.forEach(function(r) {
-								Crafty('MoveCoordinator').get(0).unregisterMoveRule(obj,r);
-							}
-						);
-					},
-					
-					enterAction: function(obj)
-					{
-						if (obj != null && obj != undefined)
-							this._enterActions.push(obj);
-						return this;
-					},
-					
-					exitAction: function(obj)
-					{
-						if (obj != null && obj != undefined)
-							this._exitActions.push(obj);
-						return this;
-					},
-
-					setScore: function(s)
-					{
-						this._score = s;
-					},	
-
-					getScore: function()
-					{
-						return this._score;
-					},
-
-					setIdStr: function(s)
-					{
-						this._idStr = s;
-					},
-
-					getIdStr: function(s)
-					{
-						return this._idStr;
-					}
-		  		}); */
 
 		  		TileType.toCrafty();
 
@@ -927,7 +598,10 @@
 										this.bouncing = false;
 	  									Crafty.log("Got tween end.");
 										tileManager.update();
-										stageManager.reset();
+										stageManagerNew.reset({
+																x:Crafty.viewport.x,
+																y:Crafty.viewport.y
+															});
 										var newTile = findTile({x:this._x,y:this._y});
 										this.tile = newTile;
 										this.tile.entityEnters(this);
@@ -1045,9 +719,9 @@
 							{
 								var el = elements[elIdx];
 						
-								locRegistry.Release(screenXYToGrid({x:el._x,y:el._y}));
+								tileWorld.Registry().Release(tileWorld.screenXYToGrid({x:el._x,y:el._y}));
 							}
-		  					factory.reset(Crafty("Tile").get(),0,0);
+		  					newFactory.reset(Crafty("Tile").get(),0,0);
 							Crafty("Rabbit").each(function(r) {
 								var x = worldStartX+ tileX*tileWidth;
 								var y = worldStartY+ tileY*tileHeight;
@@ -1063,9 +737,9 @@
 							{
 								var el = elements[elIdx];
 						
-								locRegistry.Release(screenXYToGrid({x:el._x,y:el._y}));
+								tileWorld.Registry().Release(tileWorld.screenXYToGrid({x:el._x,y:el._y}));
 							}
-		  					factory.reset(Crafty("Tile").get(),0,0);
+		  					newFactory.reset(Crafty("Tile").get(),0,0);
 							Crafty("Rabbit").each(function(r) {
 								var x = worldStartX+ tileX*tileWidth;
 								var y = worldStartY+ tileY*tileHeight;
@@ -1116,11 +790,7 @@
 			
 
 
-			function screenXYToGrid(loc)
-			{
-				return {x:Math.floor(loc.x/tileWidth),y:Math.floor(loc.y/tileHeight)};
-			}
-
+			
 		  function selectATileColor()
 		   {
 		  	 colorIdx++;

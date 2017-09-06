@@ -6,10 +6,12 @@ This is the glue code that matches the tile library with the tile selector.
 **/
 export default class PatternTileSelector {
 
-	constructor()
+	constructor(patternSelector)
 	{
 		this._patternRegistry = {};
+		this._patternSelector = patternSelector;
 	}
+
 
 	initializeFromLibrary(tileLibrary)
 	{
@@ -49,12 +51,19 @@ export default class PatternTileSelector {
 		return this.findLocationTile(loc);
 	}
 
+	selectPattern(loc)
+	{
+		return this._patternSelector.select(loc);
+	}
+
 	configureNewPattern(startLoc)
 	{
-		this.registerLocation(startLoc.x,startLoc.y,"pinkTile");
-		this.registerLocation(startLoc.x+1,startLoc.y+1,"pinkTile");
-		this.registerLocation(startLoc.x+1,startLoc.y,"blueTile");
-		this.registerLocation(startLoc.x,startLoc.y+1,"blueTile");
+		let pattern = this.selectPattern(startLoc);
+		let entries = pattern.buildPattern(startLoc);
+		entries.forEach(e=> {
+			this.registerLocation(e.x,e.y,e.tile);
+		});
+		
 	}
 
 	registerLocation(x,y,tileType)
