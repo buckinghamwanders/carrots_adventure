@@ -163,80 +163,7 @@
 			}
 			
 			var stageManagerNew = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
-			/*var stageManager = {
-				totalShift : 0,
-				minFactorySupply : numTileHeight * 4,
-				freeQueue : [],
-				reset : function () {
-					var offset = {
-						x:Crafty.viewport.x,
-						y:Crafty.viewport.y
-					}
-
-					var viewport = Crafty.viewport;
-					
-
-					Crafty.log("Stage Offset x:"+offset.x+" y: "+offset.y+" offset in tile units "+(offset.x/tileWidth)+" , "+(offset.y/tileHeight));
-					//Crafty.log("Stage Rect x:"+Crafty.viewport.bounds.min.x+" y: "+Crafty.viewport.bounds.min.y);
-					
-					var elements = Crafty("WorldElement").get();
-					var removers = [];
-					var minX = this.findMinX();
-					var shiftX = this.calculateShift();
-
-					for (var elIdx = 0; elIdx < elements.length; elIdx++)
-					{
-						var el = elements[elIdx];
-						//Crafty.log("Stage Offset Carrots :"+el.x+" y: "+el.y+" viewPort.x "+Crafty.viewport.x);
-						if (el.has("Tile") && el._x  < minX)
-						{
-							if (this.freeQueue.every(function(anEl) {
-								return el.getId() != anEl.getId()
-							}))
-							{
-							 	Crafty.log("  Remove Offset Carrots :"+el.x+" y: "+el.y);
-							
-							
-								//removers.push(el);
-								tileWorld.Registry().Release(tileWorld.screenXYToGrid({x:el._x+this.totalShift,y:el._y}));
-								this.freeQueue.push(el);
-							}
-						}
-						{
-							el.x = el.x +shiftX;
-							//el.y = el.y + offset.y;
-							//Crafty.log(" Update Offset Carrots :"+el.x+" y: "+el.y);
-						}
-
-					}
-					var currentGridShift = tileWorld.screenXYToGrid({x:this.totalShift,y:0});
-					this.totalShift += -shiftX;
-					var newGridShift = tileWorld.screenXYToGrid({x:this.totalShift,y:0});
-					if (this.freeQueue.length >  this.minFactorySupply)
-					{
-						newFactory.reset(this.freeQueue,worldWidth,this.totalShift);
-					}
-				},
-
-				findMinX: function() {
-					var rabbit = Crafty("Rabbit").get(0);
-					
-					return rabbit.x - 200;
-				},
-
-				calculateShift : function() {
-					var aRabbit = Crafty("Rabbit").get(0);
-
-					Crafty.log("Rabbit Location: x "+aRabbit.x);
-					
-					var ret = 0;
-				    if (aRabbit.x > 300)
-				    {
-				    	ret = -50;
-				    }
-				    return ret;
-				}
-			}*/
+			
 			
 		    	Crafty.init(screenWidth,screenHeight);
 
@@ -311,7 +238,7 @@
 							this.activeMoves[id] = [];
 						}
 						this.activeMoves[id].push(rule);
-						Crafty.log("Registered Moves: "+this.activeMoves[id].map((r)=>r.name).join());
+						Crafty.log("MC.Register Moves: Register "+this.activeMoves[id].map((r)=>r.name).join());
 					},
 					
 					unregisterMoveRule: function(mover,rule) {
@@ -321,7 +248,7 @@
 							var pos = this.activeMoves[id].indexOf(rule);
 							if (pos != -1)
 								this.activeMoves[id].splice(pos,1);
-							Crafty.log("Registered Moves: "+this.activeMoves[id].map((r)=>r.name).join());
+							Crafty.log("MC.Registered Moves: Unregister "+this.activeMoves[id].map((r)=>r.name).join());
 						}	
 							
 					},
@@ -361,7 +288,10 @@
 						var id = this.calculateIdString(mover)
 						if ( this.activeMoves.hasOwnProperty (id))
 					 	{
+							Crafty.log("MC.MoveComplete: Registered Moves "+this.activeMoves[id].map((r)=>r.name).join());
+						
 							return this.activeMoves[id] = this.activeMoves[id].filter((rule)=>rule.processMoved(mover));		
+						
 						}
 						return {x:0,y:0};
 					},
@@ -370,6 +300,11 @@
 						return {x:move1.x+move2.x,y:move2.y+move1.y};
 					},
 					
+					reset: function ()
+					 {
+					 		this.activeMoves = {};
+					 },
+
 					calculateIdString: function(mover) {return mover.getId();}
 					
 				});
@@ -461,7 +396,9 @@
 							var newTile = tiles[tileIdx];
 							if (newTile != this.tile)
 							{
-								if (this.tile == undefined)
+								if (this.tile != undefined && this.tile != newTile)
+									this.tile.entityExits(this);
+								if (this.tile != newTile)
 									newTile.entityEnters(this);
 								this.tile = newTile;
 							}	
@@ -603,8 +540,11 @@
 																y:Crafty.viewport.y
 															});
 										var newTile = findTile({x:this._x,y:this._y});
-										this.tile = newTile;
-										this.tile.entityEnters(this);
+										if (newTile != undefined)
+										{
+											this.tile = newTile;
+											this.tile.entityEnters(this);
+										}
 										Crafty.viewport.centerOn(this, CENTER_TIME);
 									
 									});
@@ -630,6 +570,8 @@
 									var newTile = tiles[tileIdx];
 									if (newTile != this.tile)
 									{
+										if (this.tile != newTile)
+											this.tile.entityExits(this);
 										if (this.tile == undefined)
 											newTile.entityEnters(this);
 										this.tile = newTile;
@@ -665,6 +607,10 @@
 				  					this._target.y = posXY.y;
 			  					}					
 							}
+							else {
+								this._target.x = this.x;
+				  				this._target.y = this.y;
+							}
 							
 		  			  });
 					  
@@ -687,7 +633,11 @@
 						this.y = y;
 						var newTile = findTile({x:x,y:y});
 						if (newTile != undefined)
+						{
 							newTile.entityEnters(this);
+							this.tile = newTile;
+						}	
+
 					},
 
 					applyScore: function(s)
@@ -721,7 +671,14 @@
 						
 								tileWorld.Registry().Release(tileWorld.screenXYToGrid({x:el._x,y:el._y}));
 							}
+							tileWorld.Registry().Reset();
+							newFactory.clear();
 		  					newFactory.reset(Crafty("Tile").get(),0,0);
+		  					stageManagerNew.clear();
+
+		  					Crafty("MoveCoordinator").each(function() {
+		  						this.reset();
+		  					});
 							Crafty("Rabbit").each(function(r) {
 								var x = worldStartX+ tileX*tileWidth;
 								var y = worldStartY+ tileY*tileHeight;

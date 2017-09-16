@@ -18,6 +18,12 @@ export default class SimpleTileFactory {
 		return gridLoc;
 	}
 
+	clear()
+	{
+		this._tileUpdater.clear();
+		this.tileWorld.clear();
+	}
+
 	reset(tiles,offset,globalOffset)
 	{
 		//for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)

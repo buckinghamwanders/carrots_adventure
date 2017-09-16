@@ -17,6 +17,11 @@ export default class TileArranger {
 		//TODO - update the selector
 	}
 
+	clear()
+	{
+		this._selector.clear();
+	}
+
 	installWeight(tName)
 	{
 		this._selector.addWeight(tName,this._tileLibrary.tile(tName).weight());

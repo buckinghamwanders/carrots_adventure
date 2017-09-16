@@ -14,6 +14,13 @@ export default class LocationRegistry {
 		this._nullLocation = -1;
 	}
 
+	Reset()
+	{
+		this._offsetX = 0;
+		this._offsetY = 0;
+		this._registry = new Array(this._sizeX* this._sizeY);
+	}
+	
 	Claim( loc, marker)
 	{
 		this._registry[this.FindLocation(loc)] = marker;
@@ -27,7 +34,7 @@ export default class LocationRegistry {
 	IsClaimed(loc)
 	{
 		var locIdx = this.FindLocation(loc);
-		console.log("LocationRegistry: "+locIdx+" "+this._registry[locIdx]);
+		//console.log("LocationRegistry: "+locIdx+" "+this._registry[locIdx]);
 		return this.IsClaimedCore(locIdx);
 	}
 
@@ -46,7 +53,7 @@ export default class LocationRegistry {
 	FindLocation(loc)
 	{
 		var ret = ((loc.x + this._offsetX) % this._sizeX) * this._sizeY + ((loc.y + this._offsetY) % this._sizeY);
-		console.log("FindLocation: loc.x "+loc.x+" loc.y "+loc.y+" offset X "+this._offsetX+" offset Y "+this._offsetY+" sizeX "+this._sizeX+" sizeY "+this._sizeY+" ret "+ret);
+		//console.log("FindLocation: loc.x "+loc.x+" loc.y "+loc.y+" offset X "+this._offsetX+" offset Y "+this._offsetY+" sizeX "+this._sizeX+" sizeY "+this._sizeY+" ret "+ret);
 		return ret;
 	}
 

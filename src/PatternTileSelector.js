@@ -13,9 +13,14 @@ export default class PatternTileSelector {
 	}
 
 
+	clear()
+	{
+
+	}
 	initializeFromLibrary(tileLibrary)
 	{
-		
+		this._patternRegistry = {};
+		this._patternSelector.clear();
 	}
 
 	findLocationTile(loc)

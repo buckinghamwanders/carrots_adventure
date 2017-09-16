@@ -12,6 +12,11 @@ export default class TileWorld {
 		this.locRegistry = new LocationRegistry(this.numColumns,this.numRows);
 	}
 
+	clear()
+	{
+		this.locRegistry.Reset();
+	}
+
 	screenXYToGrid(loc)
 	{
 		return {x:Math.floor(loc.x/this.tileWidth),y:Math.floor(loc.y/this.tileHeight)};

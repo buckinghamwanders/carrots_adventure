@@ -99,7 +99,7 @@ export default class DefaultTileLibrary {
 												{
 													var color = "#FFFFFF";
 									       			tile._enterActions = [tileActions.death];
-													tile.enterRule = [standardMoveLibrary.rules["Default"]];
+													tile.enterRule = [];
 									                tile.CircleColor(color)
 									               ;
 									               tile.setScore(-50);

@@ -21,6 +21,12 @@ export default class StageManager {
 		
 	}
 
+	clear()
+	{
+		this._freeQueue = [];
+		this._totalShift = 0;
+	}
+
 	reset(offset) {
 		/*var offset = {
 			x:Crafty.viewport.x,
