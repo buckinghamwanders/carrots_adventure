@@ -17,8 +17,8 @@
 	import RotationSelector from './RotationSelector.js';
 	import StageManager from './StageManager.js';
 	import DefaultPatternLibrary from './DefaultPatternLibrary.js';
-
-
+	import TileActionLibrary from './TileActionLibrary.js';
+	import WorldElementType from './WorldElementType.js';
 		window.onload =(function() {
 			
 			var screenWidth = 1000;
@@ -48,52 +48,7 @@
 
 			standardMoveLibrary = MoveLibrary.installDefaultRules(standardMoveLibrary);
 
-			
-			var tileActions = {
-				forceBounce : {
-					apply:function(mover) {
-						mover.trigger("CarrotBounce");
-					}
-				},
-				
-				death : {
-					apply:function(mover) {
-						Crafty.log("Death");
-						Crafty.trigger("ResetWorld");
-					}
-				},
-				victory : {
-					apply:function(mover) {
-						Crafty.log("Victory");
-						Crafty.trigger("Victory");
-					}
-				},
-				
-				quickTime : function(delay)
-				 {
-					 return {
-						 apply:function(mover) {
-							 Crafty.log("Trying to quickTime jump");
-							 Crafty.e("MoveCoordinator").startMoveClock(mover,delay);
-						 }
-					 }
-				}
-			};
-
-
-			
-			var tileManager = {
-				update : function () {
-					Crafty("Tile").each(function (t) {
-						var e = Crafty(t);
-						if (!Crafty.viewport.onScreen(e))
-						{
-						//	Crafty.log("Is Off Screen: "+e.x+" , "+e.y);
-						}
-						
-					});
-				}
-			}
+			var tileActions =  new TileActionLibrary();
 			
 			var highAndRightTest = function(offset)
 			{
@@ -119,53 +74,10 @@
 
 			var newFactory = new SimpleTileFactory(new TileArranger(DefaultTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(DefaultPatternLibrary.build()))), highAndRightTest,tileWorld);
 
-			
-			var moveTrigger = {
-				moverTable: {},
-				
-				moveComplete : function(mover)
-				{
-					
-				},
-				
-				moveStarted : function(mover)
-				{
-					
-				},
-				
-				movePaused : function(mover)
-				{
-					
-				},
-				
-				tick : function()
-				{
-					
-				},
-				
-				addMover : function(mover)
-				{
-					
-				},
-				
-				removeMover : function(mover)
-				{
-					
-				},
-				
-				updateMoveTime : function(mover)
-				{},
-				
-				
-				calculateIdString: function(mover) {return mover.getId();}
-				
-				
-			}
-			
 			var stageManagerNew = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
 			
 			
-		    	Crafty.init(screenWidth,screenHeight);
+		    Crafty.init(screenWidth,screenHeight);
 
 		    	Crafty.sprite(50, "images/carrots.png", {
 		    		Carrots: [0,0]
@@ -181,48 +93,8 @@
 			    });
 				
 				scoreLabel.text('score: ');
-				Crafty.c('MoveRule', {
-					
-					_move: function(mover)
-					 {
-						 return {x:0,y:0};
-					},
-							
-		  			init: function() {
-					//	this._defineMoveRuleProperties();
-		  			}
-					
-				});
 				
-				Crafty.c('WorldElement', {
-		  			init: function() {
-					},
-					
-					centerOffset : function() {
-						var xCenterOffset =  this._w/2;
-						var yCenterOffset =  this._h/2;
-						return {x:xCenterOffset, y:yCenterOffset};
-					},
-					
-					centerPosition: function() {
-						var offset = this.centerOffset();
-						return {x:this._x + offset.x, y:this._y+offset.y };
-					},
-					
-					centerPosFromPosition: function(locXY)
-					{
-						var offset = this.centerOffset();
-						return {x:locXY.x + offset.x, y:locXY.y + offset.y};
-					},
-					
-					positionFromCenterPos: function(locXY)
-					{
-						var offset = this.centerOffset();
-						return {x:locXY.x - offset.x, y:locXY.y - offset.y};
-					}
-					
-					
-				});
+				WorldElementType.toCrafty();
 
 				Crafty.c('MoveCoordinator', {
 					activeMoves : {},
@@ -310,8 +182,7 @@
 				});
 				
 				var moveCoordinator = Crafty.e('MoveCoordinator');
-				var moveRule1 = Crafty.e('MoveRule').attr( {move:function(mover){return {x:1,y:0}}});
-			  	var scoreText = Crafty.e('2D, DOM, Text')
+				var scoreText = Crafty.e('2D, DOM, Text')
 			   	 .attr({
 			      x: 150,
 			      y: 10
@@ -410,12 +281,7 @@
 				}
 				
 				
-		   var moveRule = Crafty.e('MoveRule').attr({moveRule:function(e) {
-				var jump = Math.floor(2 * e._power);
-				return {x:e._x + Math.cos(Crafty.math.degToRad(e._rotation) )* tileWidth *jump, y:e._y+ Math.sin(Crafty.math.degToRad(e._rotation) ) * tileWidth *jump};
-			
-		   }})
-
+		 
 		    var colors = ["#FFFF00", "#FF0000", "#FFFF00", "#00FF00", "#FFFF00", "#0000FF"];
 		    for (var x = 0; x < numTileWidth; x++)
 		   	{
@@ -425,7 +291,7 @@
 					 var enterAction = null;
 					 if (color == "#FF0000")
 					 {
-						 enterAction = tileActions.forceBounce;
+						 enterAction = tileActions.forceBounce();
     		       			 Crafty.e('2D, DOM, Color, Tile, WorldElement, Canvas, Circle').Circle(tileWidth,color)
     		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[],_enterActions:[]})
     		              // .color(color)
@@ -534,7 +400,7 @@
 									this.one("TweenEnd",function(){
 										this.bouncing = false;
 	  									Crafty.log("Got tween end.");
-										tileManager.update();
+										//tileManager.update();
 										stageManagerNew.reset({
 																x:Crafty.viewport.x,
 																y:Crafty.viewport.y

@@ -14,7 +14,7 @@ export default class DefaultTileLibrary {
 					build: function(tile)
 					{
 						var color = "#FFAAAA";
-		       			tile._enterActions = [tileActions.forceBounce];
+		       			tile._enterActions = [tileActions.forceBounce()];
 						tile.enterRule = [standardMoveLibrary.rules["Power2"]];
 						 if ( typeof(tile.CircleColor) != typeof(Function))
 						 {
@@ -51,7 +51,7 @@ export default class DefaultTileLibrary {
 										build:function(tile)
 										{
 											var color = "#00FF00";
-							       			tile._enterActions = [tileActions.forceBounce];
+							       			tile._enterActions = [tileActions.forceBounce()];
 											tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
 							                tile.CircleColor(color)
 							               ;
@@ -98,7 +98,7 @@ export default class DefaultTileLibrary {
 												build:function(tile)
 												{
 													var color = "#FFFFFF";
-									       			tile._enterActions = [tileActions.death];
+									       			tile._enterActions = [tileActions.death()];
 													tile.enterRule = [];
 									                tile.CircleColor(color)
 									               ;
@@ -114,7 +114,7 @@ export default class DefaultTileLibrary {
 					build:function(tile)
 					{
 						var color = "#e6f700";
-		       			tile._enterActions = [tileActions.victory];
+		       			tile._enterActions = [tileActions.victory()];
 						tile.enterRule = [standardMoveLibrary.rules["Default"]];
 		                tile.CircleColor(color)
 		               ;
