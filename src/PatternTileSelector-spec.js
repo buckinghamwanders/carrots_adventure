@@ -31,7 +31,7 @@ describe('PatternTileSelector', function() {
   	it('PatternTileSelector preselected true', function() {  
 		let selector = new PatternTileSelector(new RotationSelector(DefaultPatternLibrary.build()));
 		let location = {x:1, y:2};
-  		selector.registerLocation(location.x,location.y,"PINK");
+  		selector.registerLocation(location.x,location.y,"PINK","TESTER_PATTERN");
    		expect(selector.preselectedTile(location)).toBe(true);
   	});
 
@@ -69,19 +69,19 @@ describe('PatternTileSelector', function() {
 		let selector = new PatternTileSelector(new RotationSelector(DefaultPatternLibrary.build()));
 		let location = {x:1, y:2};
   		
-   		expect(selector.selectLabel(location)).toBe("pinkTile");
+   		expect(selector.selectLabel(location).tile).toBe("pinkTile");
    		expect(selector.preselectedTile(location)).toBe(false);
    		location = {x:2, y:2};
-   		expect(selector.selectLabel(location)).toBe("blueTile");
+   		expect(selector.selectLabel(location).tile).toBe("blueTile");
    		expect(selector.preselectedTile(location)).toBe(false);
    		location = {x:1, y:3};
-   		expect(selector.selectLabel(location)).toBe("blueTile");
+   		expect(selector.selectLabel(location).tile).toBe("blueTile");
    		expect(selector.preselectedTile(location)).toBe(false);
    		location = {x:2, y:3};
-   		expect(selector.selectLabel(location)).toBe("pinkTile");
+   		expect(selector.selectLabel(location).tile).toBe("pinkTile");
    		expect(selector.preselectedTile(location)).toBe(false);
    		location = {x:1, y:0};
-   		expect(selector.selectLabel(location)).toBe("greenTile");
+   		expect(selector.selectLabel(location).tile).toBe("greenTile");
    		expect(selector.preselectedTile(location)).toBe(false);
    		
   	});

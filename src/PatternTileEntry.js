@@ -8,12 +8,13 @@ export default class PatternTileEntry {
 	}
 
 	
-	build(loc)
+	build(build_source,loc)
 	{
 		return {
 			x: this._x+loc.x,
 			y: this._y + loc.y,
-			tile: this._tile
+			tile: this._tile,
+			source:build_source
 		}
 	}
 

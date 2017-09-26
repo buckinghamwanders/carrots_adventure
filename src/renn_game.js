@@ -48,6 +48,9 @@
 
 			standardMoveLibrary = MoveLibrary.installDefaultRules(standardMoveLibrary);
 
+			var table = document.getElementById("usageTable");
+			table.innerHTML = "Some Debug Stuff Really";
+        	
 			var tileActions =  new TileActionLibrary();
 			
 			var highAndRightTest = function(offset)
@@ -190,11 +193,21 @@
 				    // Move to the right by 10 pixels per second
 					var aRabbit = Crafty("Rabbit").get(0);
 				    if (aRabbit === undefined )
+					{
+
 						this.text('No rabbit');
+						table.innerHTML = "No Rabbit";
+					}
 					else if (aRabbit.score === undefined)
+					{
+
 						this.text('No score');
-					else
+						table.innerHTML = "No score";
+					}
+					else{
 						this.text (aRabbit._score.toString());
+						//table.innerHTML = "Score: "+aRabbit._score.toString();
+					}
 				  });
 				
 			  var powerLabel = Crafty.e('2D, DOM, Text')
@@ -410,6 +423,7 @@
 										{
 											this.tile = newTile;
 											this.tile.entityEnters(this);
+											table.innerHTML = this.tile.getIdStr();
 										}
 										Crafty.viewport.centerOn(this, CENTER_TIME);
 									
@@ -441,6 +455,7 @@
 										if (this.tile == undefined)
 											newTile.entityEnters(this);
 										this.tile = newTile;
+										table.innerHTML = this.tile.getIdStr();
 									}	
 			  						//this.tile = tiles[tileIdx];
 									//Crafty.log("StartTile is "+this.tile);
@@ -502,6 +517,7 @@
 						{
 							newTile.entityEnters(this);
 							this.tile = newTile;
+							table.innerHTML = this.tile.getIdStr();
 						}	
 
 					},
@@ -610,8 +626,6 @@
 				Crafty.log("Robbit score: "+rabbit.score);
 				rabbitId = rabbit.getId();
 				
-			
-
 
 			
 		  function selectATileColor()

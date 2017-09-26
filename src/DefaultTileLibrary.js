@@ -11,18 +11,21 @@ export default class DefaultTileLibrary {
 
 
 	library.addConfiguration("pinkTile",  {
-					build: function(tile)
-					{
-						var color = "#FFAAAA";
-		       			tile._enterActions = [tileActions.forceBounce()];
-						tile.enterRule = [standardMoveLibrary.rules["Power2"]];
-						 if ( typeof(tile.CircleColor) != typeof(Function))
-						 {
-						 	Crafty.log("Missing CircleColor");
-						 }
-		                tile.CircleColor(color);
-		                tile.setScore(1);
-		               ;
+					build: function(sourceStr) {
+						return function(tile)
+						{
+							var color = "#FFAAAA";
+			       			tile._enterActions = [tileActions.forceBounce()];
+							tile.enterRule = [standardMoveLibrary.rules["Power2"]];
+							 if ( typeof(tile.CircleColor) != typeof(Function))
+							 {
+							 	Crafty.log("Missing CircleColor");
+							 }
+			                tile.CircleColor(color);
+			                tile.setScore(1);
+			                tile.setIdStr(sourceStr);
+			               ;
+						}
 					},
 					weight: function()
 					{
@@ -32,14 +35,17 @@ export default class DefaultTileLibrary {
 				
 				.addConfiguration("yellowTile", 
 									{
-										build:function(tile)
-										{
-											var color = "#AAOCCE";
-							       			tile._enterActions =[tileActions.quickTime(5000)];
-											tile.enterRule = [standardMoveLibrary.rules["Default"]];
-							                tile.CircleColor(color);
-							                tile.setScore(5);
-							               ;
+										build:function(sourceStr) {
+											return function(tile)
+											{
+												var color = "#AAOCCE";
+								       			tile._enterActions =[tileActions.quickTime(5000)];
+												tile.enterRule = [standardMoveLibrary.rules["Default"]];
+								                tile.CircleColor(color);
+								                tile.setScore(5);
+								                tile.setIdStr(sourceStr);
+								               ;
+											}
 										},
 										weight: function()
 										{
@@ -48,14 +54,17 @@ export default class DefaultTileLibrary {
 									})
 				.addConfiguration("greenTile", 
 									{ 
-										build:function(tile)
-										{
-											var color = "#00FF00";
-							       			tile._enterActions = [tileActions.forceBounce()];
-											tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
-							                tile.CircleColor(color)
-							               ;
-							               tile.setScore(3);
+										build:function(sourceStr) {
+											return function(tile)
+											{
+												var color = "#00FF00";
+								       			tile._enterActions = [tileActions.forceBounce()];
+												tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
+								                tile.CircleColor(color)
+								               ;
+								               tile.setScore(3);
+								               tile.setIdStr(sourceStr);
+								           };
 										},
 										weight: function()
 										{
@@ -65,14 +74,17 @@ export default class DefaultTileLibrary {
 
 				.addConfiguration("blueTile", 
 									{
-										build:function(tile)
-										{
-											var color = "#AAAAFF";
-							       			tile._enterActions = [tileActions.quickTime(500)];
-											tile.enterRule = [standardMoveLibrary.rules["Default"]];
-							                tile.CircleColor(color)
-							               ;
-							               tile.setScore(10);
+										build:function(sourceStr) {
+											return function(tile)
+											{
+												var color = "#AAAAFF";
+								       			tile._enterActions = [tileActions.quickTime(500)];
+												tile.enterRule = [standardMoveLibrary.rules["Default"]];
+								                tile.CircleColor(color)
+								               ;
+								               tile.setScore(10);
+								               tile.setIdStr(sourceStr);
+								           };
 										},
 										weight: function()
 										{
@@ -80,14 +92,17 @@ export default class DefaultTileLibrary {
 										}
 									})
 				.addConfiguration("redTile", {
-									build: function(tile)
-									{
-										var color = "#FF0000";
-						       			tile._enterActions = [tileActions.quickTime(3000)];
-										tile.enterRule = [standardMoveLibrary.rules["Default"]];
-						                tile.CircleColor(color)
-						               ;
-						               tile.setScore(8);
+									build: function(sourceStr) {
+										return function(tile)
+										{
+											var color = "#FF0000";
+							       			tile._enterActions = [tileActions.quickTime(3000)];
+											tile.enterRule = [standardMoveLibrary.rules["Default"]];
+							                tile.CircleColor(color)
+							               ;
+							               tile.setScore(8);
+							               tile.setIdStr(sourceStr);
+							           };
 									},
 									weight: function()
 									{
@@ -95,14 +110,17 @@ export default class DefaultTileLibrary {
 									}
 									})
 				.addConfiguration("deathTile",  {
-												build:function(tile)
-												{
-													var color = "#FFFFFF";
-									       			tile._enterActions = [tileActions.death()];
-													tile.enterRule = [];
-									                tile.CircleColor(color)
-									               ;
-									               tile.setScore(-50);
+												build:function(sourceStr) {
+													return function(tile)
+													{
+														var color = "#FFFFFF";
+										       			tile._enterActions = [tileActions.death()];
+														tile.enterRule = [];
+										                tile.CircleColor(color)
+										               ;
+										               tile.setScore(-50);
+										               tile.setIdStr(sourceStr);
+										           };
 												},
 												weight: function()
 												{
@@ -111,14 +129,17 @@ export default class DefaultTileLibrary {
 											})
 				.addConfiguration("victoryTile", 
 				{ 
-					build:function(tile)
-					{
-						var color = "#e6f700";
-		       			tile._enterActions = [tileActions.victory()];
-						tile.enterRule = [standardMoveLibrary.rules["Default"]];
-		                tile.CircleColor(color)
-		               ;
-		               tile.setScore(50);
+					build:function(sourceStr) {
+						return function(tile)
+						{
+							var color = "#e6f700";
+			       			tile._enterActions = [tileActions.victory()];
+							tile.enterRule = [standardMoveLibrary.rules["Default"]];
+			                tile.CircleColor(color)
+			               ;
+			               tile.setScore(50);
+			               tile.setIdStr(sourceStr);
+			           };
 					},
 					weight: function()
 					{

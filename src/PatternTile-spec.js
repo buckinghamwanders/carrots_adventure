@@ -4,7 +4,7 @@ import DefaultPatternLibrary from './DefaultPatternLibrary.js';
 
 describe('PatternTile Build Tests', function() {
 	it('PatternTile build', function() {  
-		let pattern = new PatternTile([PatternTile.e(1,-1,"pink"),PatternTile.e(1,0,"green")]);
+		let pattern = new PatternTile("TestPattern",[PatternTile.e(1,-1,"pink"),PatternTile.e(1,0,"green")]);
 	
 		expect(pattern.entry(0).X()).toBe(1);
 		expect(pattern.entry(0).Y()).toBe(-1);
@@ -24,7 +24,7 @@ describe('PatternTile Build Tests', function() {
 	});
 
 	it('PatternTile build', function() {  
-		let pattern = new PatternTile([PatternTile.e(1,-1,"pink"),PatternTile.e(1,0,"green")]);
+		let pattern = new PatternTile("TestPattern",[PatternTile.e(1,-1,"pink"),PatternTile.e(1,0,"green")]);
 	
 		let ret = pattern.buildPattern({x:10,y:10});
 		expect(ret.length).toBe(2);

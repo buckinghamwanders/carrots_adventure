@@ -66,14 +66,14 @@ export default class PatternTileSelector {
 		let pattern = this.selectPattern(startLoc);
 		let entries = pattern.buildPattern(startLoc);
 		entries.forEach(e=> {
-			this.registerLocation(e.x,e.y,e.tile);
+			this.registerLocation(e.x,e.y,e.tile,e.source);
 		});
 		
 	}
 
-	registerLocation(x,y,tileType)
+	registerLocation(x,y,tileType,buildSource)
 	{
-		this._patternRegistry[this.calcXYString(x,y)] = tileType;
+		this._patternRegistry[this.calcXYString(x,y)] = {tile:tileType, source:buildSource};
 	}
 
 }

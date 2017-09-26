@@ -1,9 +1,10 @@
 import PatternTileEntry from './PatternTileEntry.js';
 
 export default class PatternTile {
-	constructor(patternEntries)
+	constructor(name,patternEntries)
 	{
 		this._patternEntries = patternEntries;
+		this._name = name;
 	}
 
 	buildPattern(loc)
@@ -11,7 +12,7 @@ export default class PatternTile {
 		let ret = [];
 		
 		this._patternEntries.forEach((e)=> {
-			ret.push(e.build(loc));
+			ret.push(e.build(this._name,loc));
 		});
 		return ret;
 		
@@ -20,6 +21,11 @@ export default class PatternTile {
 	entry(idx)
 	{
 		return this._patternEntries[idx];
+	}
+
+	name()
+	{
+		return this._name;
 	}
 
 	static e(x,y,tile)

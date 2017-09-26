@@ -30,6 +30,6 @@ export default class TileArranger {
 	buildFunction(gridLocation)
 	{
 		var label = this._selector.selectLabel(gridLocation);
-		return this._tileLibrary.tile(label).build;
+		return this._tileLibrary.tile(label.tile).build(label.source);
 	}
 }

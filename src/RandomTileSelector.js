@@ -51,6 +51,6 @@ export default class RandomTileSelector
 				break;
 			}
 		}
-		return changeFunctions[index];
+		return {tile:changeFunctions[index], source:"random"};
 	}
 }

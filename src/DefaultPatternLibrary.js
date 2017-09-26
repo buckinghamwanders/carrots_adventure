@@ -6,19 +6,19 @@ export default class DefaultPatternLibrary {
 	{
 		return [
 		//Pink and blue
-			new PatternTile([ 	PatternTile.e(0,0,"pinkTile"),
+			new PatternTile("default.bluepink",[ 	PatternTile.e(0,0,"pinkTile"),
 									PatternTile.e(0,1,"blueTile"),
 									PatternTile.e(1,0,"blueTile"),
 									PatternTile.e(1,1,"pinkTile")]),
 
 			//Red and green
-			new PatternTile([ 	PatternTile.e(0,0,"greenTile"),
+			new PatternTile("default.greenred",[ 	PatternTile.e(0,0,"greenTile"),
 									PatternTile.e(0,1,"redTile"),
 									PatternTile.e(1,0,"redTile"),
 									PatternTile.e(1,1,"greenTile")]),
 
 			//Snakey
-			new PatternTile([ 	PatternTile.e(0,0,"greenTile"),
+			new PatternTile("default.greenskinny",[ 	PatternTile.e(0,0,"greenTile"),
 									PatternTile.e(1,0,"greenTile"),
 									PatternTile.e(2,0,"greenTile"),
 									PatternTile.e(3,0,"deathTile"),
@@ -32,7 +32,7 @@ export default class DefaultPatternLibrary {
 									]),
 
 			//Red and green
-			new PatternTile([ 	PatternTile.e(0,0,"redTile"),
+			new PatternTile("default.redgreen", [ 	PatternTile.e(0,0,"redTile"),
 									PatternTile.e(0,1,"greenTile"),
 									PatternTile.e(1,0,"redTile"),
 									PatternTile.e(1,1,"greenTile")])

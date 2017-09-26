@@ -14,7 +14,7 @@ describe('RandomTileSelector', function() {
 		selector.addWeight("Tile1", 1.0);
 		selector.addWeight("Tile2", 0.0);
 
-   		expect(selector.selectLabel()).toBe("Tile1");
+   		expect(selector.selectLabel().tile).toBe("Tile1");
   	});
 
 
@@ -23,6 +23,6 @@ describe('RandomTileSelector', function() {
 		selector.addWeight("Tile1", 0.0);
 		selector.addWeight("Tile2", 1.0);
 
-   		expect(selector.selectLabel()).toBe("Tile2");
+   		expect(selector.selectLabel().tile).toBe("Tile2");
   	});
 });
