@@ -421,9 +421,10 @@
 										var newTile = findTile({x:this._x,y:this._y});
 										if (newTile != undefined)
 										{
-											this.tile = newTile;
-											this.tile.entityEnters(this);
-											table.innerHTML = this.tile.getIdStr();
+											newTile.entityEnters(this);
+											this.updateTile(newTile);
+											/*this.tile = newTile;
+											table.innerHTML = this.tile.getIdStr();*/
 										}
 										Crafty.viewport.centerOn(this, CENTER_TIME);
 									
@@ -454,8 +455,9 @@
 											this.tile.entityExits(this);
 										if (this.tile == undefined)
 											newTile.entityEnters(this);
-										this.tile = newTile;
-										table.innerHTML = this.tile.getIdStr();
+										this.updateTile(newTile);
+										/*this.tile = newTile;
+										table.innerHTML = this.tile.getIdStr();*/
 									}	
 			  						//this.tile = tiles[tileIdx];
 									//Crafty.log("StartTile is "+this.tile);
@@ -507,6 +509,7 @@
 							this.tile.entityExits(this);
 						this.tile = undefined;
 					},
+
 					forceLocation : function(x,y) {
 						if (this.tile != undefined)
 							this.tile.entityExits(this);
@@ -516,9 +519,15 @@
 						if (newTile != undefined)
 						{
 							newTile.entityEnters(this);
-							this.tile = newTile;
-							table.innerHTML = this.tile.getIdStr();
+							this.updateTile(newTile);
 						}	
+
+					},
+
+					updateTile : function(newTile)
+					{
+						this.tile = newTile;
+						table.innerHTML = this.tile.getIdStr();
 
 					},
 
