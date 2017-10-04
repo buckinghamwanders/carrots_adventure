@@ -6,6 +6,40 @@ export default class TransitionTable {
 	   	this.entryTable = {};
 	  }
 
+	  parseTransition(id,src,dest)
+	  {
+	  	 
+	  	 let difference = this.findDifferenceOfSteps(src,dest);
+
+	  	 this.recordTransition(id,difference.src,difference.dest);
+	  }
+
+	  findDifferenceOfSteps(src,dest)
+	  {
+	  	let srcArray = src.split(".");
+	  	 let destArray = dest.split(".");
+	  	 let idx = 0;
+	  	 for (idx = 0; idx < srcArray.length; idx++)
+	  	 {
+	  	 	if (srcArray[idx] != destArray[idx])
+	  	 		break
+	  	 }
+	  	 let srcStep = "";
+	  	 let destStep = "";
+	  	 for (let concatIdx = 0; concatIdx < idx; concatIdx++)
+	  	 {
+	  	 	srcStep = srcStep.concat(srcArray[concatIdx]).concat(".");
+	  	 	destStep = destStep.concat(destArray[concatIdx]).concat(".");
+	  	 }
+
+	  	 if (idx < srcArray.length)
+	  	 {
+	  	 	srcStep = srcStep.concat(srcArray[idx]);
+	  	 	destStep = destStep.concat(destArray[idx]);
+	  	 }
+	  	 return {src: srcStep, dest: destStep};	
+	  }
+
 	  recordTransition(id,src,dest)
 	  {
 	  	  let srcEntry = this.updateEntry(src);

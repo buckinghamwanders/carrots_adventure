@@ -19,6 +19,7 @@
 	import DefaultPatternLibrary from './DefaultPatternLibrary.js';
 	import TileActionLibrary from './TileActionLibrary.js';
 	import WorldElementType from './WorldElementType.js';
+	import {transitions, TransitionTable} from './TransitionTable.js';
 		window.onload =(function() {
 			
 			var screenWidth = 1000;
@@ -344,40 +345,40 @@
 						
 		  				
 						
-		  	      	  	this.bind("KeyDown", function(e) {
-		  	  				//on keydown, set the move booleans
-		  				    Crafty.log("Got key down: e");
-							if(e.keyCode === Crafty.keys.RIGHT_ARROW) {
-								this.rotation = this._rotation+90;
-							} else if(e.keyCode === Crafty.keys.LEFT_ARROW) {
-								this.rotation = this._rotation - 90;
+			  	      	  	this.bind("KeyDown", function(e) {
+			  	  				//on keydown, set the move booleans
+			  				    Crafty.log("Got key down: e");
+								if(e.keyCode === Crafty.keys.RIGHT_ARROW) {
+									this.rotation = this._rotation+90;
+								} else if(e.keyCode === Crafty.keys.LEFT_ARROW) {
+									this.rotation = this._rotation - 90;
 
-		  	 			    } else if(e.keyCode === Crafty.keys.SPACE) {
-		  						  this._power = 1.0;
-		  						    var d = new Date();
-		  						    this._startPower = d.getTime();
-		                  		  Crafty.log("Setting power "+this.power)
-		  	  				}
-		  	  			});
+			  	 			    } else if(e.keyCode === Crafty.keys.SPACE) {
+			  						  this._power = 1.0;
+			  						    var d = new Date();
+			  						    this._startPower = d.getTime();
+			                  		  Crafty.log("Setting power "+this.power)
+			  	  				}
+			  	  			});
 
 
 
-		  		    	this.bind("KeyUp", function(e) {
-		  		  				//on keydown, set the move booleans
-		  					Crafty.log("Got key up: e");
-		  		  			if(e.keyCode === Crafty.keys.SPACE) {
-	  							var d = new Date();
-  								var delta = d.getTime() - this._startPower;
-	               			 	var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
-	  							Crafty.log("PowerStep: "+powerStep);
-  							
-	      						this._power = 1.0+ powerStep;
-	  							this._startPower = -1;
-  							
-								this.trigger("CarrotBounce");							
-		  		  			}
-						}
-		  				);
+			  		    	this.bind("KeyUp", function(e) {
+			  		  				//on keydown, set the move booleans
+			  					Crafty.log("Got key up: e");
+			  		  			if(e.keyCode === Crafty.keys.SPACE) {
+		  							var d = new Date();
+	  								var delta = d.getTime() - this._startPower;
+		               			 	var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
+		  							Crafty.log("PowerStep: "+powerStep);
+	  							
+		      						this._power = 1.0+ powerStep;
+		  							this._startPower = -1;
+	  							
+									this.trigger("CarrotBounce");							
+			  		  			}
+							}
+		  					);
 						this.bind("CarrotBounce", function(e) {
   		  					//this.x = this._x + Math.cos(Crafty.math.degToRad(this._rotation) )* tileWidth *2;
   							//this.y = this._y+ Math.sin(Crafty.math.degToRad(this._rotation) ) * tileWidth *2;
@@ -526,6 +527,14 @@
 
 					updateTile : function(newTile)
 					{
+						let oldTileId = "";
+						let newTileId = "";
+						if (this.tile != undefined)
+						{
+							oldTileId = this.tile.getIdStr();
+							newTileId = newTile.getIdStr();
+							transitions.parseTransition(this.getId(),oldTileId,newTileId);
+						}	
 						this.tile = newTile;
 						table.innerHTML = this.tile.getIdStr();
 
