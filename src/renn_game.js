@@ -17,6 +17,7 @@
 	import RotationSelector from './RotationSelector.js';
 	import StageManager from './StageManager.js';
 	import DefaultPatternLibrary from './DefaultPatternLibrary.js';
+	import PatternLibrary from './PatternLibrary.js';
 	import TileActionLibrary from './TileActionLibrary.js';
 	import WorldElementType from './WorldElementType.js';
 	import {transitions, TransitionTable} from './TransitionTable.js';
@@ -52,8 +53,13 @@
 			var table = document.getElementById("usageTable");
 			table.innerHTML = "Some Debug Stuff Really";
         	
+        	var transTable = document.getElementById("transitionTable");
+			transTable.innerHTML = "Some Debug Stuff Really";
+        	
 			var tileActions =  new TileActionLibrary();
 			
+			let patternLibrary = DefaultPatternLibrary.build();
+
 			var highAndRightTest = function(offset)
 			{
 				return {
@@ -76,7 +82,7 @@
 				}
 			}
 
-			var newFactory = new SimpleTileFactory(new TileArranger(DefaultTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(DefaultPatternLibrary.build()))), highAndRightTest,tileWorld);
+			var newFactory = new SimpleTileFactory(new TileArranger(DefaultTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(patternLibrary.Patterns()))), highAndRightTest,tileWorld);
 
 			var stageManagerNew = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
 			
@@ -537,7 +543,13 @@
 						}	
 						this.tile = newTile;
 						table.innerHTML = this.tile.getIdStr();
-
+						let currPattern = patternLibrary.FindPattern(this.tile.getIdStr()).name();
+						let transitionsDisplay = "<table>";
+						patternLibrary.PatternNames().forEach(function(pName) {
+							transitionsDisplay = transitionsDisplay + "<tr>"+"<td>"+pName + "</td><td>"+ transitions.likelihoodTransition(currPattern,pName).toString()+"</td></tr>";
+						})
+						transitionsDisplay = transitionsDisplay +"</table>";
+						transitionTable.innerHTML = transitionsDisplay;
 					},
 
 					applyScore: function(s)

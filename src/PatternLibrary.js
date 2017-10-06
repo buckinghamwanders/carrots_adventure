@@ -1,11 +1,36 @@
 import PatternTileEntry from './PatternTileEntry.js';
 import PatternTile from './PatternTile.js';
-import PatternLibrary from './PatternLibrary.js';
 
-export default class DefaultPatternLibrary {
-	static build()
+export default class PatternLibrary {
+
+	constructor(patterns)
 	{
-		return new PatternLibrary([
+		this._patterns = patterns;
+		this._name = name;
+	}
+
+	Patterns() 
+	{
+		return this._patterns;
+	}
+
+	PatternNames()
+	{
+		return this._patterns.map(function(pattern) {
+			return pattern.name();
+		})
+	}
+
+	FindPattern(idStr)
+	{
+		return this._patterns.find(function(pattern) {
+			return idStr.startsWith(pattern.name());
+		});
+	}
+
+	/*static build()
+	{
+		return [
 		//Pink and blue
 			new PatternTile("default.bluepink",[ 	PatternTile.e(0,0,"pinkTile"),
 									PatternTile.e(0,1,"blueTile"),
@@ -39,6 +64,6 @@ export default class DefaultPatternLibrary {
 									PatternTile.e(1,1,"greenTile")])
 
 
-		]);
-	}
+		]
+	}*/
 }
