@@ -50,8 +50,8 @@ export default class TileType {
 							}
 						);
 						obj.applyScore(this.getScore());
-						this._enterActions.forEach(function(r) {
-							r.apply(obj);
+						this._enterActions.forEach((r) => {
+							r.apply(obj,this);
 						});
 
 					},

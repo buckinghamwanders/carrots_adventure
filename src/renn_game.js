@@ -5,6 +5,7 @@
 	import IdString from './IdString.js';
 	import TargetType from './TargetType.js';
 	import TileType from './TileType.js';
+	import CircleType from './CircleType.js';
 	import TileFactory from './TileFactory.js';
 	import TileWorld from './TileWorld.js';
 	import LocationRegistry from './LocationRegistry.js';
@@ -21,14 +22,16 @@
 	import TileActionLibrary from './TileActionLibrary.js';
 	import WorldElementType from './WorldElementType.js';
 	import {transitions, TransitionTable} from './TransitionTable.js';
+	import {stageManager, CarrotGame} from './CarrotGame.js';
+	import RabbitType from './RabbitType.js';
+
 		window.onload =(function() {
 			
 			var screenWidth = 1000;
 			var screenHeight = 800;
 			var textBuffer = 50;
 			
-		    var POWER_RATE_PER_SECOND = 1;
-
+		    
 		    var numTileWidth = 20;
 		    var numTileHeight = 14;
 			var worldStartX = 0;
@@ -42,7 +45,6 @@
 		    var tileX = 0;
 		    var tileY = 3;
 		    var colorIdx = 0;
-			const CENTER_TIME = 500;
 			var standardMoveLibrary = new MoveLibrary();
 			var tileWorld = new TileWorld(tileWidth,tileHeight,numTileWidth,numTileHeight);
 
@@ -59,7 +61,10 @@
 			var tileActions =  new TileActionLibrary();
 			
 			let patternLibrary = DefaultPatternLibrary.build();
-
+			CarrotGame.setTileWidth(tileWidth);
+			CarrotGame.setTileHeight(tileHeight);
+			CarrotGame.setTable(table);
+			CarrotGame.setPatternLibrary(patternLibrary);
 			var highAndRightTest = function(offset)
 			{
 				return {
@@ -84,8 +89,9 @@
 
 			var newFactory = new SimpleTileFactory(new TileArranger(DefaultTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(patternLibrary.Patterns()))), highAndRightTest,tileWorld);
 
-			var stageManagerNew = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
-			
+			let sManager = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
+			CarrotGame.setStageManager(sManager);
+
 			
 		    Crafty.init(screenWidth,screenHeight);
 
@@ -245,60 +251,12 @@
 				
 				powerLabel.text('power: ');
 
-				Crafty.c("Circle", {
-				    Circle: function(radius, color) {
-				        this.radius = radius;
-				        this.w = this.h = radius * 2;
-				        this.color = color || "#000000";
-        				this.bind("Draw", this.sdraw); 
-				        return this;
-				    },
-				    CircleColor: function( color) {
-				        this.color = color || "#000000";
-        				return this;
-				    },
-    
-				    sdraw: function( drawVars) {
-				       //ctx.save();
-				       drawVars.ctx.fillStyle = this.color;
-				       drawVars.ctx.beginPath();
-				       drawVars.ctx.arc(
-				           drawVars.pos._x + drawVars.pos._w/2,
-				           drawVars.pos._y + drawVars.pos._h/2,
-				           drawVars.pos._w/2,
-				           0,
-				           Math.PI * 2
-				       );
-				       drawVars.ctx.closePath();
-				       drawVars.ctx.fill();
-				    }
-				});
+		
 
-
+				CircleType.toCrafty();
 		  		TileType.toCrafty();
 
-				function findContainingTile(locXY)
-				{
-	  				for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
-	  				{
-
-	  					if (tiles[tileIdx].contains(locXY))
-	  					{
-							var newTile = tiles[tileIdx];
-							if (newTile != this.tile)
-							{
-								if (this.tile != undefined && this.tile != newTile)
-									this.tile.entityExits(this);
-								if (this.tile != newTile)
-									newTile.entityEnters(this);
-								this.tile = newTile;
-							}	
-	  						//this.tile = tiles[tileIdx];
-							//Crafty.log("StartTile is "+this.tile);
-	  						break;
-	  					}
-	  				}	
-				}
+				
 				
 				
 		 
@@ -327,249 +285,8 @@
 		  		}
 		    }
 
-			
-
-		  	Crafty.c("Rabbit", {
-					_power : 0,
-					_startPower: -1,
-					
-					_score : 0,
-					tile : null,
-					bouncing: false,
-					
-		  			init: function() {
-		  				this.requires('2D, Keyboard,Controls, Color');
-		  				Crafty.log("Initializing Carrots: "+this.getId());
-						
-		  				Crafty.log("Initializing Carrots: score"+this._score);
-						
-		  				var tiles = Crafty("Tile").get();
-		  				
-		  				var z = 10;
-
-						//this._defineRabbitProperties();
-						
-		  				
-						
-			  	      	  	this.bind("KeyDown", function(e) {
-			  	  				//on keydown, set the move booleans
-			  				    Crafty.log("Got key down: e");
-								if(e.keyCode === Crafty.keys.RIGHT_ARROW) {
-									this.rotation = this._rotation+90;
-								} else if(e.keyCode === Crafty.keys.LEFT_ARROW) {
-									this.rotation = this._rotation - 90;
-
-			  	 			    } else if(e.keyCode === Crafty.keys.SPACE) {
-			  						  this._power = 1.0;
-			  						    var d = new Date();
-			  						    this._startPower = d.getTime();
-			                  		  Crafty.log("Setting power "+this.power)
-			  	  				}
-			  	  			});
-
-
-
-			  		    	this.bind("KeyUp", function(e) {
-			  		  				//on keydown, set the move booleans
-			  					Crafty.log("Got key up: e");
-			  		  			if(e.keyCode === Crafty.keys.SPACE) {
-		  							var d = new Date();
-	  								var delta = d.getTime() - this._startPower;
-		               			 	var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
-		  							Crafty.log("PowerStep: "+powerStep);
-	  							
-		      						this._power = 1.0+ powerStep;
-		  							this._startPower = -1;
-	  							
-									this.trigger("CarrotBounce");							
-			  		  			}
-							}
-		  					);
-						this.bind("CarrotBounce", function(e) {
-  		  					//this.x = this._x + Math.cos(Crafty.math.degToRad(this._rotation) )* tileWidth *2;
-  							//this.y = this._y+ Math.sin(Crafty.math.degToRad(this._rotation) ) * tileWidth *2;
-  							//if (this.tile !== undefined)
-							//	locXY = this.tile.jumpFunction(this);
-							if (this.bouncing)
-								return;
-							this.bouncing = true;
-							var coordinatorXY = Crafty('MoveCoordinator').get(0).move(this);
-  							this._power = 1.0;
-  							var tiles = Crafty("Tile").get();
-  							var foundTile = false;
-  							for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
-  							{
-  								if (tiles[tileIdx].contains(coordinatorXY))
-  								{
-  									//this.x = coordinatorXY.x;
-  									//this.y = coordinatorXY.y;
-									var newTile = tiles[tileIdx];
-									foundTile = true;
-									Crafty.log("Tweening - "+this);
-									Crafty('MoveCoordinator').get(0).moveCompleted(this);
-									var tileCenter = newTile.centerPosition();
-									var newLoc = this.positionFromCenterPos(tileCenter);
-									
-									this.tween({x:newLoc.x,y:newLoc.y}, 1000);
-									//this.tile.entityExits(this);
-									if (this.tile != undefined)
-										this.tile.entityExits(this);
-									
-									//this.tile = tiles[tileIdx];
-									//this.tile.entityEnters(this);
-									this.one("TweenEnd",function(){
-										this.bouncing = false;
-	  									Crafty.log("Got tween end.");
-										//tileManager.update();
-										stageManagerNew.reset({
-																x:Crafty.viewport.x,
-																y:Crafty.viewport.y
-															});
-										var newTile = findTile({x:this._x,y:this._y});
-										if (newTile != undefined)
-										{
-											newTile.entityEnters(this);
-											this.updateTile(newTile);
-											/*this.tile = newTile;
-											table.innerHTML = this.tile.getIdStr();*/
-										}
-										Crafty.viewport.centerOn(this, CENTER_TIME);
-									
-									});
-									//this._power = 1;
-  									
-  									break;
-  								}
-  							}
-  							if (!foundTile)
-  							{
-  								this.bouncing = false;
-  							}
-						});
-						
-						
-		  				this.bind("EnterFrame", function(eventData) {
-			  				var locXY = {x:this._x,y:this._y};
-			  				for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
-			  				{
-
-			  					if (tiles[tileIdx].contains(locXY))
-			  					{
-									var newTile = tiles[tileIdx];
-									if (newTile != this.tile)
-									{
-										if (this.tile != newTile)
-											this.tile.entityExits(this);
-										if (this.tile == undefined)
-											newTile.entityEnters(this);
-										this.updateTile(newTile);
-										/*this.tile = newTile;
-										table.innerHTML = this.tile.getIdStr();*/
-									}	
-			  						//this.tile = tiles[tileIdx];
-									//Crafty.log("StartTile is "+this.tile);
-			  						break;
-			  					}
-			  				}
-		  					if (this._startPower != -1)
-			  				{
-			  					var d = new Date();
-
-			  					var delta = d.getTime() - this._startPower;
-			  					var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
-			  					this._power =  1.0 + powerStep;
-			  					//Crafty.log("Frame PowerStep: "+this._power+" delta "+delta+" startPower "+this._startPower);
-				  				
-			  								
-			  				}
-							if (!this.bouncing)
-							{
-			  					if (this.tile === undefined)
-								{
-								
-								}						
-								else
-								{
-									//locXY = this.tile.jumpFunction(this);
-									locXY = Crafty('MoveCoordinator').get(0).move(this);
-  									var posXY = this._target.positionFromCenterPos(locXY);
-									this._target.x = posXY.x;
-				  					this._target.y = posXY.y;
-			  					}					
-							}
-							else {
-								this._target.x = this.x;
-				  				this._target.y = this.y;
-							}
-							
-		  			  });
-					  
-		  			},
-
-		  			target : function(t) {
-		  				this._target = t;
-		  				return this._target;
-		  			},
-					
-					removeLocation : function() {
-						if (this.tile != undefined)
-							this.tile.entityExits(this);
-						this.tile = undefined;
-					},
-
-					forceLocation : function(x,y) {
-						if (this.tile != undefined)
-							this.tile.entityExits(this);
-						this.x = x;
-						this.y = y;
-						var newTile = findTile({x:x,y:y});
-						if (newTile != undefined)
-						{
-							newTile.entityEnters(this);
-							this.updateTile(newTile);
-						}	
-
-					},
-
-					updateTile : function(newTile)
-					{
-						let oldTileId = "";
-						let newTileId = "";
-						if (this.tile != undefined)
-						{
-							oldTileId = this.tile.getIdStr();
-							newTileId = newTile.getIdStr();
-							transitions.parseTransition(this.getId(),oldTileId,newTileId);
-						}	
-						this.tile = newTile;
-						table.innerHTML = this.tile.getIdStr();
-						let currPattern = patternLibrary.FindPattern(this.tile.getIdStr()).name();
-						let transitionsDisplay = "<table>";
-						patternLibrary.PatternNames().forEach(function(pName) {
-							transitionsDisplay = transitionsDisplay + "<tr>"+"<td>"+pName + "</td><td>"+ transitions.likelihoodTransition(currPattern,pName).toString()+"</td></tr>";
-						})
-						transitionsDisplay = transitionsDisplay +"</table>";
-						transitionTable.innerHTML = transitionsDisplay;
-					},
-
-					applyScore: function(s)
-					{
-						this._score = this._score + s;
-					},
-
-					tileMoveWidth : function ()
-					{
-						return tileWidth;
-					}
-		  		});
-
-		  		/*Crafty.c("Target", {
-		  			init: function() {
-		  				this.requires('2D,  Color');
-		  				Crafty.log("Initializing Target");
-
-		  			}
-		  		});*/
+	
+		  		RabbitType.toCrafty();
 		  		TargetType.toCrafty();
 				
 				
@@ -586,7 +303,7 @@
 							tileWorld.Registry().Reset();
 							newFactory.clear();
 		  					newFactory.reset(Crafty("Tile").get(),0,0);
-		  					stageManagerNew.clear();
+		  					CarrotGame.StageManager().clear();
 
 		  					Crafty("MoveCoordinator").each(function() {
 		  						this.reset();
@@ -665,7 +382,7 @@
 		  		return colors[colorIdx]
 		    }
 			
-			function findTile(locXY)
+			/*function findTile(locXY)
 			{
   				var tiles = Crafty("Tile").get();
   				var ret;
@@ -682,7 +399,7 @@
   				}
 				Crafty.log("Found Tiles: "+found);
 				return ret;
-			}
+			}*/
 			
 			function findFirstTile(tFunc)
 			{

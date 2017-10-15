@@ -1,3 +1,4 @@
+
 import LocationRegistry from './LocationRegistry.js';
 import TileWorld from './TileWorld.js';
 
@@ -147,3 +148,4 @@ export default class StageManager {
 
 
 }
+

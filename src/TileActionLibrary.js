@@ -8,7 +8,7 @@ export default class TileActionLibrary {
 
 	forceBounce() {
 		return {
-					apply:function(mover) {
+					apply:function(mover,tile) {
 						mover.trigger("CarrotBounce");
 					}
 		}
@@ -17,7 +17,7 @@ export default class TileActionLibrary {
 	death() {
 
 			return {
-					apply:function(mover) {
+					apply:function(mover,tile) {
 						Crafty.log("Death");
 						Crafty.trigger("ResetWorld");
 					}
@@ -27,7 +27,7 @@ export default class TileActionLibrary {
 	victory(){
 
 	 return {
-			apply:function(mover) {
+			apply:function(mover,tile) {
 				Crafty.log("Victory");
 				Crafty.trigger("Victory");
 			}
@@ -37,7 +37,7 @@ export default class TileActionLibrary {
 	quickTime (delay)
 	{
 		return {
-			 apply:function(mover) {
+			 apply:function(mover,tile) {
 				 Crafty.log("Trying to quickTime jump");
 				 Crafty.e("MoveCoordinator").startMoveClock(mover,delay);
 			}
