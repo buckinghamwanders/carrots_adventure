@@ -24,6 +24,8 @@
 	import {transitions, TransitionTable} from './TransitionTable.js';
 	import {stageManager, CarrotGame} from './CarrotGame.js';
 	import RabbitType from './RabbitType.js';
+	import MoverUpdaterType from './MoverUpdaterType.js';
+	import MoverSurfaceType from './MoverSurfaceType.js';
 
 		window.onload =(function() {
 			
@@ -58,6 +60,10 @@
         	var transTable = document.getElementById("transitionTable");
 			transTable.innerHTML = "Some Debug Stuff Really";
         	
+        	var rabbitPower = document.getElementById("hud.power");
+        	var rabbitScore = document.getElementById("hud.score");
+        	var rabbitBouncing = document.getElementById("bounce.state");
+
 			var tileActions =  new TileActionLibrary();
 			
 			let patternLibrary = DefaultPatternLibrary.build();
@@ -65,6 +71,7 @@
 			CarrotGame.setTileHeight(tileHeight);
 			CarrotGame.setTable(table);
 			CarrotGame.setPatternLibrary(patternLibrary);
+
 			var highAndRightTest = function(offset)
 			{
 				return {
@@ -221,6 +228,10 @@
 						this.text (aRabbit._score.toString());
 						//table.innerHTML = "Score: "+aRabbit._score.toString();
 					}
+					rabbitPower.innerHTML="Power: "+aRabbit._power.toString();
+					rabbitScore.innerHTML="Score: "+aRabbit._score.toString();
+					rabbitBouncing.innerHTML="Bounce: "+aRabbit.bouncing.toString();
+
 				  });
 				
 			  var powerLabel = Crafty.e('2D, DOM, Text')
@@ -255,7 +266,8 @@
 
 				CircleType.toCrafty();
 		  		TileType.toCrafty();
-
+		  		MoverSurfaceType.toCrafty();
+		  		MoverUpdaterType.toCrafty();
 				
 				
 				
