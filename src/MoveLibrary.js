@@ -47,6 +47,20 @@ export default class MoveLibrary {
 							return ret;
 						}
 					}).appendRule({
+						name:"Momentum",
+						
+						move:function(mover) {
+							var jump = Math.floor(mover.currentHeight());
+							return {x: Math.cos(Crafty.math.degToRad(mover._rotation) )* mover.tileMoveWidth() *jump, y: Math.sin(Crafty.math.degToRad(mover._rotation) ) * mover.tileMoveWidth() *jump};		
+						},
+						
+						//return false if done
+						//return true to return
+						processMoved:function(mover) {
+							var ret = false;
+							return ret;
+						}
+					}).appendRule({
 						name: "Slide",
 						slideCounter: {},
 						slideSize: 5,

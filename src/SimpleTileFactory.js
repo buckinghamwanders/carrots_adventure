@@ -24,7 +24,7 @@ export default class SimpleTileFactory {
 		this.tileWorld.clear();
 	}
 
-	reset(tiles,offset,globalOffset)
+	reset(tiles,screenOffset,globalOffset)
 	{
 		//for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
 		while (tiles.length > 0)
@@ -34,13 +34,14 @@ export default class SimpleTileFactory {
 			//tiles[tileIdx].color("FF00FF")
 			var tile = tiles.pop();
 			var newLoc = this.determineBestFreeLocation(globalOffset);
+			Crafty.log("BestLocation is ."+newLoc.x+" , "+newLoc.y);
 			//newloc is in global space, need to apply the shift over
-			tile.x = newLoc.x - globalOffset;
+			tile.x = newLoc.x - screenOffset;
 			tile.y = newLoc.y;
 
 
-			var tileLocation = {x:tile.x+globalOffset,y:tile.y};
-			var gridLocation = this.tileWorld.screenXYToGrid(tileLocation);
+			var tileLocation = {x:tile.x,y:tile.y};
+			var gridLocation = this.tileWorld.screenXYToGrid(newLoc);
 			var claimValue = tile.getId();
 			/*********
 			var changeFunctions = Object.keys(tileMaker);
@@ -79,7 +80,7 @@ export default class SimpleTileFactory {
 			//what other context does this need to be done.
 			var cFunc = this._tileUpdater.buildFunction(gridLocation);//tileMaker[changeFunctions[index]].build;
 			cFunc(tile);
-			//Crafty.log("Reseting Tile to "+" Loc: "+tile.x+" , "+tile.y+" using idex "+index);
+			Crafty.log("Reseting Tile to "+" Loc: "+tile.x+" , "+tile.y);
 		}
 	}
 	

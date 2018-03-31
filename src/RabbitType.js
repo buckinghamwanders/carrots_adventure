@@ -2,19 +2,23 @@ import {stageManager,CarrotGame,CENTER_TIME,POWER_RATE_PER_SECOND} from './Carro
 import {transitions, TransitionTable} from './TransitionTable.js';
 
 	
+const STANDARD_MILLISECOND_PER_SQUARE = 750;
+
 export default class RabbitType {
 	static toCrafty()
 	{
 		Crafty.c("Rabbit", {
 					_power : 0,
 					_startPower: -1,
-					
+					_minLaunchPower:0,
+					_powerRate:POWER_RATE_PER_SECOND,
 					_score : 0,
+					_lastJump: 0,
 					tile : null,
 					bouncing: false,
 					
 		  			init: function() {
-		  				this.requires('2D, Keyboard,Controls, Color');
+		  				this.requires('2D, Keyboard,Controls, Color, MoverUpdater');
 		  				Crafty.log("Initializing Carrots: "+this.getId());
 						
 		  				Crafty.log("Initializing Carrots: score"+this._score);
@@ -31,15 +35,20 @@ export default class RabbitType {
 			  	  				//on keydown, set the move booleans
 			  				    Crafty.log("Got key down: e");
 								if(e.keyCode === Crafty.keys.RIGHT_ARROW) {
-									this.rotation = this._rotation+90;
-								} else if(e.keyCode === Crafty.keys.LEFT_ARROW) {
-									this.rotation = this._rotation - 90;
+									this.rotation = 0;//this._rotation+90;
+								} else if(e.keyCode === Crafty.keys.UP_ARROW) {
+									this.rotation = 270;
 
-			  	 			    } else if(e.keyCode === Crafty.keys.SPACE) {
-			  						  this._power = 1.0;
-			  						    var d = new Date();
-			  						    this._startPower = d.getTime();
-			                  		  Crafty.log("Setting power "+this.power)
+			  	 			    }
+			  	 			     else if(e.keyCode === Crafty.keys.LEFT_ARROW) {
+									this.rotation = 180;
+
+			  	 			    } 
+			  	 			    else if(e.keyCode === Crafty.keys.DOWN_ARROW) {
+									this.rotation = 90;
+
+			  	 			    }else if(e.keyCode === Crafty.keys.SPACE) {
+			  						 this.beginPower();
 			  	  				}
 			  	  			});
 
@@ -49,14 +58,14 @@ export default class RabbitType {
 			  		  				//on keydown, set the move booleans
 			  					Crafty.log("Got key up: e");
 			  		  			if(e.keyCode === Crafty.keys.SPACE) {
-		  							var d = new Date();
+		  							/*var d = new Date();
 	  								var delta = d.getTime() - this._startPower;
 		               			 	var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
-		  							Crafty.log("PowerStep: "+powerStep);
-	  							
-		      						this._power = 1.0+ powerStep;
-		  							this._startPower = -1;
-	  							
+		  							Crafty.log("PowerStep: "+powerStep);*/
+	  								this._power = this.currentPower();//1.0+ powerStep;
+		  							this.releasePower();
+		      						
+	  								
 									this.trigger("CarrotBounce");							
 			  		  			}
 							}
@@ -70,8 +79,11 @@ export default class RabbitType {
 							if (this.bouncing)
 								return;
 							this.bouncing = true;
-							var coordinatorXY = Crafty('MoveCoordinator').get(0).move(this);
+							this.start(this._power,this._power,this._power);
+							this._startPower = -1;
+  							var coordinatorXY = Crafty('MoveCoordinator').get(0).move(this);
   							this._power = 1.0;
+  							this._height = this._power;
   							var tiles = Crafty("Tile").get();
   							var foundTile = false;
   							for (var tileIdx = 0; tileIdx < tiles.length; tileIdx++)
@@ -86,30 +98,52 @@ export default class RabbitType {
 									Crafty('MoveCoordinator').get(0).moveCompleted(this);
 									var tileCenter = newTile.centerPosition();
 									var newLoc = this.positionFromCenterPos(tileCenter);
-									
-									this.tween({x:newLoc.x,y:newLoc.y}, 1000);
+									this._lastJump = newLoc.x - this._x;
+
+									let timeToMove = this._MUHeight * STANDARD_MILLISECOND_PER_SQUARE/ this._MUSpeed;
+									this.tween({x:newLoc.x,y:newLoc.y}, timeToMove);
+									this.targetTile = newTile;
 									//this.tile.entityExits(this);
-									if (this.tile != undefined)
-										this.tile.entityExits(this);
-									
-									this.one("TweenEnd",function(){
+									if (newTile != this.tile)
+									{
+
+										if(this.tile != undefined)
+											this.tile.entityExits(this);
+										
+										this.one("TweenEnd",function(){
+											this.bouncing = false;
+		  									Crafty.log("Got tween end.");
+											this.endBounce();
+											var newTile = CarrotGame.findTile({x:this._x,y:this._y});
+											if (newTile != undefined)
+											{
+												var tileCenter = newTile.centerPosition();
+												var newLoc = this.positionFromCenterPos(tileCenter);
+												this.x = newLoc.x;
+												this.y = newLoc.y;
+												this.updateTile(newTile);
+												newTile.entityEnters(this);
+												
+												
+												/*this.tile = newTile;
+												table.innerHTML = this.tile.getIdStr();*/
+											}
+											//Crafty.viewport.centerOn(this, CENTER_TIME);
+											if (this._lastJump > 0 && this.isSetteled() == 1) 
+											{
+												CarrotGame.StageManager().reset({
+																	x:this._lastJump,
+																	y:0
+																});
+											}
+											
+											
+										});
+									}
+									else {
 										this.bouncing = false;
-	  									Crafty.log("Got tween end.");
-										CarrotGame.StageManager().reset({
-																x:Crafty.viewport.x,
-																y:Crafty.viewport.y
-															});
-										var newTile = CarrotGame.findTile({x:this._x,y:this._y});
-										if (newTile != undefined)
-										{
-											newTile.entityEnters(this);
-											this.updateTile(newTile);
-											/*this.tile = newTile;
-											table.innerHTML = this.tile.getIdStr();*/
-										}
-										Crafty.viewport.centerOn(this, CENTER_TIME);
-									
-									});
+		  									
+									}
 									//this._power = 1;
   									
   									break;
@@ -132,11 +166,12 @@ export default class RabbitType {
 									var newTile = tiles[tileIdx];
 									if (newTile != this.tile)
 									{
-										if (this.tile != newTile)
+										if (this.tile != newTile && this.tile != null)
 											this.tile.entityExits(this);
 										if (this.tile == undefined)
 											newTile.entityEnters(this);
 										this.updateTile(newTile);
+										
 										/*this.tile = newTile;
 										table.innerHTML = this.tile.getIdStr();*/
 									}	
@@ -147,14 +182,8 @@ export default class RabbitType {
 			  				}
 		  					if (this._startPower != -1)
 			  				{
-			  					var d = new Date();
-
-			  					var delta = d.getTime() - this._startPower;
-			  					var powerStep = POWER_RATE_PER_SECOND * delta / 1000.0;
-			  					this._power =  1.0 + powerStep;
+			  					this._power =  this.currentPower();
 			  					//Crafty.log("Frame PowerStep: "+this._power+" delta "+delta+" startPower "+this._startPower);
-				  				
-			  								
 			  				}
 							if (!this.bouncing)
 							{
@@ -172,12 +201,46 @@ export default class RabbitType {
 			  					}					
 							}
 							else {
-								this._target.x = this.x;
-				  				this._target.y = this.y;
+							//	this._target.x = this.x;
+				  			//	this._target.y = this.y;
 							}
 							
 		  			  });
 					  
+		  			},
+
+		  			scalePower: function(scalor)
+		  			{
+		  				this._powerRate = POWER_RATE_PER_SECOND * scalor;
+		  			},
+		  			beginPower : function()
+		  			{
+		  				this._minLaunchPower = 1.0;
+			  			var d = new Date();
+			  			this._startPower = d.getTime();
+			  			this._powerRate = POWER_RATE_PER_SECOND;
+			            Crafty.log("Setting power "+this.power)
+		  			},
+		  			releasePower : function()
+		  			{
+		  				//this._storedPower = this.currentPower();
+		  				this._minLaunchPower = 1;
+		  			},
+		  			currentPower : function()
+		  			{
+		  				var d = new Date();
+	  					var delta = d.getTime() - this._startPower;
+		               	return this._minLaunchPower + (this._powerRate * delta / 1000.0);
+		  			} ,
+		  			currentHeight : function() 
+		  			{
+		  				return this.getHeight() + this.getNewReleaseHeight();
+		  			},
+		  			getNewReleaseHeight: function()
+		  			{
+		  				if (this._startPower == -1)
+		  					return 0;
+		  				return this.currentPower();
 		  			},
 
 		  			setManager : function (sManager) {

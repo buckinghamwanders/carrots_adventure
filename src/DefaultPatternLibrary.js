@@ -32,11 +32,22 @@ export default class DefaultPatternLibrary {
 
 									]),
 
-			//Red and green
-			new PatternTile("default.redgreen", [ 	PatternTile.e(0,0,"redTile"),
+			//Yellow and green
+			new PatternTile("default.yellowgreen", [ 	PatternTile.e(0,0,"yellowTile"),
 									PatternTile.e(0,1,"greenTile"),
-									PatternTile.e(1,0,"redTile"),
-									PatternTile.e(1,1,"greenTile")])
+									PatternTile.e(1,0,"yellowTile"),
+									PatternTile.e(1,1,"greenTile")]),
+
+			//Red and green
+			new PatternTile("default.redgreen", [ 	PatternTile.e(0,0,"yellowTile"),
+									PatternTile.e(0,1,"orangeTile"),
+									PatternTile.e(0,2,"greenTile"),
+									PatternTile.e(1,2,"greenTile"),
+									PatternTile.e(1,1,"redTile"),
+									PatternTile.e(1,0,"blueTile"),
+									PatternTile.e(2,2,"greenTile"),
+									PatternTile.e(2,1,"orangeTile")])
+
 
 
 		]);

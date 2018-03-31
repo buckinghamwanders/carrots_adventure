@@ -12,7 +12,7 @@
 	import RandomTileSelector from './RandomTileSelector.js';
 	import TileLibrary from './TileLibrary.js';
 	import SimpleTileFactory from './SimpleTileFactory.js';
-	import DefaultTileLibrary from './DefaultTileLibrary.js';
+	import MomentumTileLibrary from './MomentumTileLibrary.js';
 	import TileArranger from './TileArranger.js';
 	import PatternTileSelector from './PatternTileSelector.js';
 	import RotationSelector from './RotationSelector.js';
@@ -30,19 +30,19 @@
 		window.onload =(function() {
 			
 			var screenWidth = 1000;
-			var screenHeight = 800;
+			var screenHeight = 1000;
 			var textBuffer = 50;
 			
 		    
 		    var numTileWidth = 20;
-		    var numTileHeight = 14;
+		    var numTileHeight = 20;
 			var worldStartX = 0;
 			var worldStartY = textBuffer;
 			var worldWidth = screenWidth;
 			var worldHeight = screenHeight - textBuffer;
 		    var tileWidth = worldWidth/numTileWidth;
 		    var tileHeight = worldHeight/numTileHeight;
-
+		    numTileWidth = numTileWidth - 5;
 		   
 		    var tileX = 0;
 		    var tileY = 3;
@@ -63,6 +63,7 @@
         	var rabbitPower = document.getElementById("hud.power");
         	var rabbitScore = document.getElementById("hud.score");
         	var rabbitBouncing = document.getElementById("bounce.state");
+        	var momentum = document.getElementById("debug.momentum");
 
 			var tileActions =  new TileActionLibrary();
 			
@@ -94,7 +95,7 @@
 				}
 			}
 
-			var newFactory = new SimpleTileFactory(new TileArranger(DefaultTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(patternLibrary.Patterns()))), highAndRightTest,tileWorld);
+			var newFactory = new SimpleTileFactory(new TileArranger(MomentumTileLibrary.build(tileActions,standardMoveLibrary), new PatternTileSelector(new RotationSelector(patternLibrary.Patterns()))), highAndRightTest,tileWorld);
 
 			let sManager = new StageManager(tileWorld,newFactory,{width:worldWidth,height:worldHeight});
 			CarrotGame.setStageManager(sManager);
@@ -102,10 +103,10 @@
 			
 		    Crafty.init(screenWidth,screenHeight);
 
-		    	Crafty.sprite(50, "images/carrots.png", {
+		    	Crafty.sprite(50, "images/carrots2.png", {
 		    		Carrots: [0,0]
 		    	});
-		    	Crafty.sprite(50, "images/target.png", {
+		    	Crafty.sprite(50, "images/target2.png", {
 		    		TargetImage: [0,0]
 		    	});
 				
@@ -228,10 +229,11 @@
 						this.text (aRabbit._score.toString());
 						//table.innerHTML = "Score: "+aRabbit._score.toString();
 					}
-					rabbitPower.innerHTML="Power: "+aRabbit._power.toString();
+					rabbitPower.innerHTML="Power: "+aRabbit._power.toFixed(2);
 					rabbitScore.innerHTML="Score: "+aRabbit._score.toString();
 					rabbitBouncing.innerHTML="Bounce: "+aRabbit.bouncing.toString();
-
+					momentum.innerHTML = "Rabbit.MoverUpdater: Pwr: "+aRabbit.getPower().toFixed(2)+" Hgt: "+aRabbit.getHeight().toFixed(2)+" Spd: "+aRabbit.getSpeed().toFixed(2)+" StrPwr: "+aRabbit._minLaunchPower.toFixed(2);
+					//Crafty.log("Viewport "+Crafty.viewport.x+" , "+Crafty.viewport.y+" "+Crafty.viewport.width+" "+Crafty.viewport.height);
 				  });
 				
 			  var powerLabel = Crafty.e('2D, DOM, Text')
@@ -262,7 +264,7 @@
 				
 				powerLabel.text('power: ');
 
-		
+				
 
 				CircleType.toCrafty();
 		  		TileType.toCrafty();
@@ -282,14 +284,14 @@
 					 if (color == "#FF0000")
 					 {
 						 enterAction = tileActions.forceBounce();
-    		       			 Crafty.e('2D, DOM, Color, Tile, WorldElement, Canvas, Circle').Circle(tileWidth,color)
+    		       			 Crafty.e('2D, DOM, Color, Tile,WorldElement, Canvas, Circle, MoverSurface').Circle(tileWidth,color)
     		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[],_enterActions:[]})
     		              // .color(color)
 						 	.origin("center")
     		               ;
 					 }
 					 else {
-  		       			 Crafty.e('2D, DOM, Color, Tile, WorldElement, Canvas, Circle').Circle(tileWidth,color)
+  		       			 Crafty.e('2D, DOM, Color, Tile, WorldElement, Canvas, Circle, MoverSurface').Circle(tileWidth,color)
   		               .attr({x: worldStartX+ x*tileWidth, y:worldStartY+ y*tileHeight, z:1,w: tileWidth, h: tileHeight,enterRule:[]})
   		               //.color(color)
   		               ;
@@ -326,6 +328,10 @@
 								var t = findFirstTile(function(t) {return t._x});
 								this.forceLocation(t._x,t._y);
 							});
+							Crafty("Rabbit").each(function(r) {
+								Crafty.viewport.centerOn(r, 500);
+							
+							});
 							
 		  				});
 
@@ -351,12 +357,12 @@
 				
 				
 		  		//Make a sprite
-		  		var rabbitTarget = Crafty.e('2D, DOM, Color, Target, TargetImage, WorldElement')
+		  		var rabbitTarget = Crafty.e('2D, DOM, Color, Target, Tween,TargetImage, WorldElement')
 		  		//.color("Pink")
 		               .attr({x: worldStartX+ (tileX+2)*tileWidth, y: worldStartY+ tileY*tileHeight, z:10,w: 50, h: 46})
 
 		  		 //Now need to add rabbitTarget to the rabit
-		  		var rabbit =  Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots,Tween,WorldElement,Delay')
+		  		var rabbit =  Crafty.e('2D, DOM, Color, Keyboard,Controls,Rabbit,Carrots,Tween,WorldElement,Delay,MoverUpdater')
 		  	    .origin("center")
 		  	    .attr({x: worldStartX+ tileX*tileWidth, y: worldStartY+ tileY*tileHeight, z:10, w: 50, h: 46,score:0,power:0, startPower:-1})
 		  	    //.color("Pink")
@@ -373,18 +379,20 @@
 				
 				var gameManager = Crafty.e('GameManager');
 				Crafty.trigger("ResetWorld");
-				Crafty.viewport.bounds = {min:{x:0, y:0}, max:{x:500, y:500}};
+				///Crafty.viewport.bounds = {min:{x:0, y:0}, max:{x:500, y:500}};
 				
-				Crafty.viewport.clampToEntities = false;
+				//Crafty.viewport.clampToEntities = false;
 				//Crafty.one("CameraAnimationDone", function() {
 				 //   Crafty.viewport.follow(rabbit, 0, 0);
 				//});
-				Crafty.viewport.centerOn(rabbit, 1000);
 				
 				Crafty.log("rabbit: "+rabbit.getId());
 				Crafty.log("Robbit score: "+rabbit.score);
 				rabbitId = rabbit.getId();
-				
+				var player = Crafty.e("2D, Canvas, Color, Fourway")
+		        .attr({x:100, y:100, w:50, h:50})
+		        .color("blue")
+		        .fourway(3);
 
 			
 		  function selectATileColor()

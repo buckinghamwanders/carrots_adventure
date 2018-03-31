@@ -23,12 +23,18 @@ export default class LocationRegistry {
 	
 	Claim( loc, marker)
 	{
-		this._registry[this.FindLocation(loc)] = marker;
+		let tileIdx = this.FindLocation(loc);
+		console.log("ClaimingLocation: TileLoc "+loc.x+" , "+loc.y+" at array "+tileIdx);
+		
+		this._registry[tileIdx] = marker;
 	}
 
 	Release (loc, Marker)
 	{
-		this._registry[this.FindLocation(loc)] = null; //TODO - what should be null  by convention
+		let tileIdx = this.FindLocation(loc);
+		console.log("ReleasingLocation: TileLoc "+loc.x+" , "+loc.y+" at array "+tileIdx);
+		
+		this._registry[tileIdx] = null; //TODO - what should be null  by convention
 	}
 
 	IsClaimed(loc)
@@ -53,7 +59,9 @@ export default class LocationRegistry {
 	FindLocation(loc)
 	{
 		var ret = ((loc.x + this._offsetX) % this._sizeX) * this._sizeY + ((loc.y + this._offsetY) % this._sizeY);
-		//console.log("FindLocation: loc.x "+loc.x+" loc.y "+loc.y+" offset X "+this._offsetX+" offset Y "+this._offsetY+" sizeX "+this._sizeX+" sizeY "+this._sizeY+" ret "+ret);
+		if (loc.x < 0 || loc.y < 0)
+			console.log("FindLocation: loc.x "+loc.x+" loc.y "+loc.y+" offset X "+this._offsetX+" offset Y "+this._offsetY+" sizeX "+this._sizeX+" sizeY "+this._sizeY+" ret "+ret);
+		
 		return ret;
 	}
 
@@ -68,7 +76,7 @@ export default class LocationRegistry {
 	calculateAGlobalSpot(locXY,offset)
 	{
 		return {
-			x: (offset + (locXY.x  - (offset % this._sizeX) + this._sizeX) % this._sizeX),
+			x: offset + ((locXY.x  - (offset % this._sizeX) + this._sizeX) % this._sizeX),
 			y: locXY.y 
 		}
 	}

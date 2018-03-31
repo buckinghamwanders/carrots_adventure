@@ -5,7 +5,7 @@ let tileHeight = 0;
 let table = null;
 let transitions = null;
 let patternLibrary = null;
-let POWER_RATE_PER_SECOND = 1;
+export const POWER_RATE_PER_SECOND = 2;
 
 export const CENTER_TIME = 500;
 			

@@ -15,7 +15,8 @@ export default class DefaultTileLibrary {
 						return function(tile)
 						{
 							var color = "#FFAAAA";
-			       			tile._enterActions = [tileActions.forceBounce()];
+			       			//tile._enterActions = [tileActions.forceBounce()];
+							tile._enterActions = [tileActions.momentum()];
 							tile.enterRule = [standardMoveLibrary.rules["Power2"]];
 							 if ( typeof(tile.CircleColor) != typeof(Function))
 							 {
@@ -23,7 +24,7 @@ export default class DefaultTileLibrary {
 							 }
 			                tile.CircleColor(color);
 			                tile.setScore(1);
-			                tile.setIdStr(sourceStr);
+			                tile.setIdStr(sourceStr+"."+"pinkTile");
 			               ;
 						}
 					},
@@ -39,11 +40,12 @@ export default class DefaultTileLibrary {
 											return function(tile)
 											{
 												var color = "#AAOCCE";
-								       			tile._enterActions =[tileActions.quickTime(5000)];
+								       			//tile._enterActions =[tileActions.quickTime(5000)];
+												tile._enterActions = [tileActions.momentum()];
 												tile.enterRule = [standardMoveLibrary.rules["Default"]];
 								                tile.CircleColor(color);
 								                tile.setScore(5);
-								                tile.setIdStr(sourceStr);
+								                tile.setIdStr(sourceStr+"."+"yellow");
 								               ;
 											}
 										},
@@ -58,12 +60,13 @@ export default class DefaultTileLibrary {
 											return function(tile)
 											{
 												var color = "#00FF00";
-								       			tile._enterActions = [tileActions.forceBounce()];
+								       			//tile._enterActions = [tileActions.forceBounce()];
+												tile._enterActions = [tileActions.momentum()];
 												tile.enterRule = [standardMoveLibrary.rules["Slide"]] ;
 								                tile.CircleColor(color)
 								               ;
 								               tile.setScore(3);
-								               tile.setIdStr(sourceStr);
+								               tile.setIdStr(sourceStr+"."+"greenTile");
 								           };
 										},
 										weight: function()
@@ -78,12 +81,13 @@ export default class DefaultTileLibrary {
 											return function(tile)
 											{
 												var color = "#AAAAFF";
-								       			tile._enterActions = [tileActions.quickTime(500)];
+								       			//tile._enterActions = [tileActions.quickTime(500)];
+												tile._enterActions = [tileActions.momentum()];
 												tile.enterRule = [standardMoveLibrary.rules["Default"]];
 								                tile.CircleColor(color)
 								               ;
 								               tile.setScore(10);
-								               tile.setIdStr(sourceStr);
+								               tile.setIdStr(sourceStr+"."+"blueTile");
 								           };
 										},
 										weight: function()
@@ -96,12 +100,13 @@ export default class DefaultTileLibrary {
 										return function(tile)
 										{
 											var color = "#FF0000";
-							       			tile._enterActions = [tileActions.quickTime(3000)];
+							       			//tile._enterActions = [tileActions.quickTime(3000)];
+											tile._enterActions = [tileActions.momentum()];
 											tile.enterRule = [standardMoveLibrary.rules["Default"]];
 							                tile.CircleColor(color)
 							               ;
 							               tile.setScore(8);
-							               tile.setIdStr(sourceStr);
+							               tile.setIdStr(sourceStr+"."+"redTile");
 							           };
 									},
 									weight: function()
@@ -119,7 +124,7 @@ export default class DefaultTileLibrary {
 										                tile.CircleColor(color)
 										               ;
 										               tile.setScore(-50);
-										               tile.setIdStr(sourceStr);
+										               tile.setIdStr(sourceStr+"."+"deathTile");
 										           };
 												},
 												weight: function()
@@ -138,7 +143,7 @@ export default class DefaultTileLibrary {
 			                tile.CircleColor(color)
 			               ;
 			               tile.setScore(50);
-			               tile.setIdStr(sourceStr);
+			               tile.setIdStr(sourceStr+"."+"victoryTile");
 			           };
 					},
 					weight: function()

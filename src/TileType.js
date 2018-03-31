@@ -15,6 +15,8 @@ export default class TileType {
 					_idStr: new IdString(0),
 		  			init: function() {
 						//this._defineTileProperties();
+						this.requires('2D,Canvas, Tween, Color, MoverSurface, WorldElement, CircleType');
+		  				
 		  				this.jumpSize = 2;
 		  				this.jumpFunction = function(e) {
 		  					var jump = Math.floor(this.jumpSize * e._power);
@@ -31,16 +33,7 @@ export default class TileType {
 		  			},
 					
 					   
-					    sdraw: function(e) {
-					        var ctx=Crafty.canvasLayer.context; 
-					        ctx.lineWidth = 8;
-					        ctx.strokeStyle = "0x00FF00"
-							ctx.beginPath();
-							ctx.arc(e.pos._x,e.pos._y,e.width,0,2*Math.PI)
-					        //ctx.moveTo(e.pos._x, e.pos._y+20);
-					        //ctx.lineTo(e.pos._x+50, e.pos._y+20);
-					        ctx.stroke();
-					     },
+					  
 					
 					entityEnters: function (obj) {
 						Crafty.log("EnterTile: "+this._x+","+this._y+" obj: "+obj+" enterAction "+this._enterActions.length+" color "+this._color);
@@ -91,6 +84,7 @@ export default class TileType {
 					setIdStr: function(s)
 					{
 						this._idStr = s;
+
 					},
 
 					getIdStr: function(s)
